@@ -6,9 +6,21 @@ export default function Login(){
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
 
+
+    //Todo this is just logging the info but should call alexs endpoint
     const handleSubmit = (e: FormEvent) => {
-        e.preventDefault();
-        alert("submitted")
+        e.preventDefault()
+        console.log({
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                username: username,
+                password: password,
+            })
+        })
+        alert("login successfully")
     }
 
     return (
@@ -19,7 +31,7 @@ export default function Login(){
                     <div className="flex flex-col gap-1">
                         <label className="text-sm font-medium text-gray-700" htmlFor="username">Username</label>
                         <input
-                            className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className=" text-black border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             type="text"
                             id="username"
                             value={username}
@@ -29,7 +41,7 @@ export default function Login(){
                     <div className="flex flex-col gap-1">
                         <label className="text-sm font-medium text-gray-700" htmlFor="password">Password</label>
                         <input
-                            className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="border text-black border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             type="password"
                             id="password"
                             value={password}
