@@ -1,16 +1,40 @@
 'use client'
 import {FormEvent, useState} from "react";
 import Link from "next/link";
+import { ValidationRes, validateEmail, validatePassword, validateUsername } from "@/app/lib/validation";
+import { useRouter } from "next/navigation";
+
+
 
 export default function Register(){
+    const router = useRouter();
     const [email, setEmail] = useState("");
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const [emailErrors, setEmailErrors] = useState<string[]>([]);
+    const [usernameErrors, setUsernameErrors] = useState<string[]>([]);
+    const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
+
 
     const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
+        const emailRes: ValidationRes = validateEmail(email);
+        const usernameRes: ValidationRes = validateUsername(username);
+        const passwordRes: ValidationRes = validatePassword(password);
+
+        setEmailErrors(emailRes.errors)
+        setUsernameErrors(usernameRes.errors)
+        setPasswordErrors(passwordRes.errors)
+
+        if (!emailRes.valid || !usernameRes.valid || !passwordRes.valid) {
+            alert('fail')
+            return
+        }
+        //Successful validation TODO DELETE BELOW BEFORE
+        console.log(`Email: ${email} --- Username: ${username} --- Password: ${password}`);
         alert("submitted")
 
+        router.replace("/login")
     }
 
     return (
@@ -23,10 +47,17 @@ export default function Register(){
                         <input
                             className="border text-black border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             type="email"
-                            id="username"
+                            id="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                         />
+                        {emailErrors.length > 0 && (
+                            <ul className="text-red-500">
+                                {emailErrors.map((error) => (
+                                    <li key={error}>{error}</li>
+                                ))}
+                            </ul>
+                        )}
                     </div>
                     <div className="flex flex-col gap-1">
                         <label className="text-sm font-medium text-gray-700" htmlFor="username">Username</label>
@@ -37,6 +68,13 @@ export default function Register(){
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
                         />
+                        {usernameErrors.length > 0 && (
+                            <ul className="text-red-500">
+                                {usernameErrors.map((error) => (
+                                    <li key={error}>{error}</li>
+                                ))}
+                            </ul>
+                        )}
                     </div>
                     <div className="flex flex-col gap-1">
                         <label className="text-sm font-medium text-gray-700" htmlFor="password">Password</label>
@@ -47,6 +85,13 @@ export default function Register(){
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                         />
+                        {passwordErrors.length > 0 && (
+                            <ul className="text-red-500">
+                                {passwordErrors.map((error) => (
+                                    <li key={error}>{error}</li>
+                                ))}
+                            </ul>
+                        )}
                     </div>
                     <button className="bg-green-600 text-white py-2 rounded hover:bg-green-700 transition-colors font-medium">
                         Register
