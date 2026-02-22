@@ -28,8 +28,13 @@ SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = [
-    '*.up.railway.app'
+    'localhost'
+    '127.0.0.1',
+    '*.up.railway.app',
+    'capstone-production-6abe.up.railway.app'
 ]
+
+CSRF_TRUSTED_ORIGINS = ['https://capstone-production-6abe.up.railway.app']
 
 
 # Application definition
