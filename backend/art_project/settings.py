@@ -36,6 +36,8 @@ ALLOWED_HOSTS = [
     'capstone-production-6abe.up.railway.app'
 ]
 
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 CSRF_TRUSTED_ORIGINS = ['https://capstone-production-6abe.up.railway.app']
 
 
@@ -144,7 +146,6 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
-
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 ACCOUNT_USERNAME_BLACKLIST = ['admin', 'user', 'staff']
