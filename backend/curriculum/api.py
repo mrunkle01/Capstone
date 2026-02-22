@@ -100,3 +100,8 @@ def get_concept_details(request, concept_name: str):
         "sample_exercises": concept.sample_exercise_prompts
     }
 
+
+#create endpoint to receive image and one to send image to AI
+
+#create endpoint to receive response from the AI and one to send to front end
+
