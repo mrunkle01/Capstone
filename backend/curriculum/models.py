@@ -236,40 +236,40 @@ class ConceptLibrary(models.Model):
             return cls.objects.filter(is_active=True)
 
 
-    class Drawings(models.Model):
-        name = models.CharField(
-            max_length=100
-        )
-    class Curriculum(models.Model):
-        name = models.CharField(
-            max_length=100
-        )
-    class ConceptMastery(models.Model):
-        name = models.CharField(
-            max_length=100
-        )
+class Drawings(models.Model):
+    name = models.CharField(
+        max_length=100
+    )
+class Curriculum(models.Model):
+    name = models.CharField(
+        max_length=100
+    )
+class ConceptMastery(models.Model):
+    name = models.CharField(
+        max_length=100
+    )
     #later on
-    class Module(models.Model):
-        name = models.CharField(
-            max_length=100
-        )
-    class PracticeExercise(models.Model):
-        name = models.CharField(
-            max_length=100
-        )
-    class ChatMessage(models.Model):
-        name = models.CharField(
-            max_length=100
-        )
-    class CurriculumModification(models.Model):
-        name = models.CharField(
-            max_length=100
-        )
-    class Milestone(models.Model):
-        name = models.CharField(
-            max_length=100
-        )
-    class LearningGoal(models.Model):
-        name = models.CharField(
-            max_length=100
-        )
+class Module(models.Model):
+    name = models.CharField(
+        max_length=100
+    )
+class PracticeExercise(models.Model):
+    name = models.CharField(
+        max_length=100
+    )
+class ChatMessage(models.Model):
+    name = models.CharField(
+        max_length=100
+    )
+class CurriculumModification(models.Model):
+    name = models.CharField(
+        max_length=100
+    )
+class Milestone(models.Model):
+    name = models.CharField(
+        max_length=100
+    )
+class LearningGoal(models.Model):
+    name = models.CharField(
+        max_length=100
+    )
