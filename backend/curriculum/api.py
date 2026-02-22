@@ -5,6 +5,10 @@ from .schemas import RegisterSchema, UpdateProfileSchema
 
 api = NinjaAPI()
 
+@api.get('/')
+def home():
+    return "App is working"
+
 @api.post("/register")
 def register(request, data: RegisterSchema):
     """Create new user with profile"""
@@ -99,6 +103,7 @@ def get_concept_details(request, concept_name: str):
         "tips": concept.tips_for_improvement,
         "sample_exercises": concept.sample_exercise_prompts
     }
+
 
 
 #create endpoint to receive image and one to send image to AI
