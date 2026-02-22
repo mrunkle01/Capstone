@@ -30,7 +30,7 @@ SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = [
-    'localhost'
+    'localhost',
     '127.0.0.1',
     '*.up.railway.app',
     'capstone-production-6abe.up.railway.app'
@@ -97,7 +97,7 @@ DATABASES = {
 }
 
 POSTGRES_LOCALLY= True
-if config('ENVIRONMENT') == 'production' and POSTGRES_LOCALLY == True:
+if ENVIRONMENT == 'production' and POSTGRES_LOCALLY == True:
     DATABASES['default'] = dj_database_url.parse(config('DATABASE_URL'))
 
 
