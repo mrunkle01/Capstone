@@ -18,7 +18,7 @@ export default function LoginForm() {
         if (!password) setPasswordErrors(["Password cannot be empty."])
         if (!username || !password) return
 
-        await loginUser(username, password)
+        // await loginUser(username, password)
         router.push("/demo")
     }
 
