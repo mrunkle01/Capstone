@@ -1,5 +1,5 @@
 import ImageInput from "@/components/demo/ImageInput";
-import "demo-styles.css"
+import "./demo-styles.css"
 
 export default function Demo() {
     return (
