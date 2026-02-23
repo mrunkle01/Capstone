@@ -1,5 +1,5 @@
 
-import ImageInput from "@/app/demo/components/ImageInput";
+import ImageInput from "@/components/demo/ImageInput";
 
 export default function Demo() {
     return (
