@@ -1,8 +1,8 @@
 import LoginForm from "@/components/auth/LoginForm";
-
+import "../auth-styles.css"
 export default function LoginPage() {
     return (
-        <div className="flex min-h-screen items-center justify-center bg-gray-200">
+        <div className="enter-forms">
             <LoginForm/>
         </div>
     )

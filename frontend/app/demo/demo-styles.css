@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+.header-1 {
+    @apply text-3xl text-black font-bold text-center pt-10 capitalize;
+}
+.main-box{
+    @apply bg-zinc-200 h-screen pt-10 flex flex-col;
+}
+.image-input{
+    @apply bg-zinc-200 h-screen pt-10 flex flex-col;
+}

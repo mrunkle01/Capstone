@@ -1,8 +1,11 @@
 import RegisterForm from '@/components/auth/RegisterForm'
+import "../auth-styles.css"
+
+
 
 export default function RegisterPage() {
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="enter-forms">
             <RegisterForm />
         </div>
     )
