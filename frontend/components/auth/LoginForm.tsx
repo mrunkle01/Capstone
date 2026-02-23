@@ -19,7 +19,7 @@ export default function LoginForm() {
         if (!username || !password) return
 
         await loginUser(username, password)
-        router.push("/dashboard")
+        router.push("/demo")
     }
 
     return (
