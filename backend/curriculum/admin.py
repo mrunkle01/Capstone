@@ -1,7 +1,11 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
-from .models import UserProfile, ConceptLibrary
+from .models import (
+    UserProfile, ConceptLibrary, LearningGoal,
+    PretestQuestion, PretestQuestionOption, PretestResult,
+    Section, Lesson, UserLesson, Assessment, ReportCard, ChatLog
+)
 
 
 # Inline admin for UserProfile
@@ -104,3 +108,14 @@ class ConceptLibraryAdmin(admin.ModelAdmin):
         self.message_user(request, f'Reset usage count for {updated} concept(s).')
 
     reset_usage_count.short_description = "Reset usage count to 0"
+
+    admin.site.register(LearningGoal)
+    admin.site.register(PretestQuestion)
+    admin.site.register(PretestQuestionOption)
+    admin.site.register(PretestResult)
+    admin.site.register(Section)
+    admin.site.register(Lesson)
+    admin.site.register(UserLesson)
+    admin.site.register(Assessment)
+    admin.site.register(ReportCard)
+    admin.site.register(ChatLog)
