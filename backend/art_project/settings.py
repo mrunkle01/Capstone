@@ -12,14 +12,17 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 import os
 from decouple import config
 from pathlib import Path
+import dj_database_url
 
+
+PORT = os.environ.get("PORT")
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
-
+ENVIRONMENT = config('ENVIRONMENT', default='production')
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config('SECRET_KEY')
 
@@ -27,8 +30,15 @@ SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = [
-    '*.up.railway.app'
+    'localhost',
+    '127.0.0.1',
+    '*.up.railway.app',
+    'capstone-production-6abe.up.railway.app'
 ]
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+CSRF_TRUSTED_ORIGINS = ['https://capstone-production-6abe.up.railway.app']
 
 
 # Application definition
@@ -79,23 +89,30 @@ WSGI_APPLICATION = 'art_project.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
+
+POSTGRES_LOCALLY= True
+if ENVIRONMENT == 'production' and POSTGRES_LOCALLY == True:
+    DATABASES['default'] = dj_database_url.parse(config('DATABASE_URL'))
+
+
+
 # DATABASES = {
 #     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
+#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
+#         'NAME': config('DB_NAME'),
+#         'USER': config('DB_USER'),
+#         'PASSWORD': config('DB_PASSWORD'),
+#         'PORT': config('DB_PORT'),
+#         'HOST': config('DB_HOST'),
 #     }
 # }
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': config('DB_NAME'),
-        'USER': config('DB_USER'),
-        'PASSWORD': config('DB_PASSWORD'),
-        'PORT': config('DB_PORT'),
-        'HOST': config('DB_HOST'),
-    }
-}
 
 
 # Password validation
@@ -133,5 +150,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
-
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+ACCOUNT_USERNAME_BLACKLIST = ['admin', 'user', 'staff']
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_EMAIL_REQUIRED = True
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+LOGIN_REDIRECT_URL = '/'
