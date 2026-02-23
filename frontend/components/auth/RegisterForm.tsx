@@ -27,7 +27,7 @@ export default function RegisterForm() {
 
         if (!emailRes.valid || !usernameRes.valid || !passwordRes.valid) return
 
-        await registerUser(email, username, password)
+        // await registerUser(email, username, password)
         router.replace("/login")
     }
 
