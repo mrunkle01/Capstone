@@ -1,14 +1,20 @@
 "use client"
+import { useState, useEffect } from "react";
 
 export default function Results() {
-    const result = localStorage.getItem("assessmentResult");
-    const imageUrl = localStorage.getItem("imageUrl");
+    const [result, setResult] = useState(null);
+    const [imageUrl, setImageUrl] = useState<string | null>(null);
+
+    useEffect(() => {
+        setResult(JSON.parse(localStorage.getItem("assessmentResult") ?? "{}"));
+        setImageUrl(localStorage.getItem("imageUrl"));
+    }, []);
 
     return (
         <div>
             <h2>Results</h2>
             <img src={imageUrl ?? ""} alt="submitted drawing" />
-            <p>{result}</p>
+            <pre>{JSON.stringify(result, null, 2)}</pre>
         </div>
     )
 }
