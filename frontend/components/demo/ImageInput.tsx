@@ -2,7 +2,7 @@
 import {useRef, useState} from "react";
 import clsx from "clsx";
 import {useRouter} from "next/navigation";
-import assessImage from "@/lib/api/assessment"
+import { assessImage } from "@/lib/api/assessment"
 
 export default function ImageInput({ setImageUrl }: { setImageUrl: (url: string) => void }) {
     const router = useRouter()
