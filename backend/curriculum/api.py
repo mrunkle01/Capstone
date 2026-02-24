@@ -144,4 +144,4 @@ def returnBytes(request, image: UploadedFile = File(...)):
     # Read image as raw bytes
     image_data = image.read()
 
-    return image_data
+    return {"success": True, "size": len(image_data)}

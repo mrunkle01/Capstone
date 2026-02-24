@@ -15,11 +15,4 @@ export async function testImage(formData: FormData){
     })
    return response.json();
 }
-export async function printConcepts(){
-    const url = `${process.env.NEXT_PUBLIC_API_URL}/api/concepts/`;
-    const response = await fetch(url, {
-        method: "GET"
-    })
-   return response.json();
-}
 
