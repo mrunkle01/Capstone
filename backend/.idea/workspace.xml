@@ -4,7 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7aa59bae-b848-4ef8-9d25-afdb426ce229" name="Changes" comment="Merge branch 'main' of https://github.com/mrunkle01/Capstone&#10;&#10;# Conflicts:&#10;#&#9;backend/.idea/workspace.xml" />
+    <list default="true" id="7aa59bae-b848-4ef8-9d25-afdb426ce229" name="Changes" comment="Merge branch 'main' into backend&#10;&#10;# Conflicts:&#10;#&#9;backend/.idea/workspace.xml">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/curriculum/api.py" beforeDir="false" afterPath="$PROJECT_DIR$/curriculum/api.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -25,6 +29,18 @@
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
   </component>
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+    "state": "OPEN",
+    "assignee": "atorres502"
+  }
+}]]></component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/mrunkle01/Capstone.git",
+    "accountId": "f1b83bac-f8e2-4642-80cb-908a6dff4a65"
+  }
+}]]></component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 5
 }</component>

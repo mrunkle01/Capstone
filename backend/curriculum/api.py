@@ -1,9 +1,16 @@
-from ninja import NinjaAPI
+from ninja import NinjaAPI, File
+from ninja.files import UploadedFile
 from django.contrib.auth.models import User
-from .models import UserProfile, ConceptLibrary
-from .schemas import RegisterSchema, UpdateProfileSchema
+from .models import UserProfile, ConceptLibrary, Section, Assessment, ReportCard
+from .schemas import (RegisterSchema, UpdateProfileSchema, LearningGoalSchema,
+                      PretestResultSchema, PretestQuestionSchema,PretestQuestionOptionSchema,
+                      SectionSchema, LessonSchema, UserLessonSchema, AssessmentSchema,
+                      ReportCardSchema, ChatLogSchema)
+import re
 
 api = NinjaAPI()
+
+#/api before every call
 
 @api.get('/')
 def home():
@@ -104,9 +111,31 @@ def get_concept_details(request, concept_name: str):
         "sample_exercises": concept.sample_exercise_prompts
     }
 
-
-
-#create endpoint to receive image and one to send image to AI
-
-#create endpoint to receive response from the AI and one to send to front end
+# @api.post("/assess/{section_id}")
+# def submit_assessment(request, section_id: int, assignment: str, image: UploadedFile = File(...)):
+#     # Read image as raw bytes
+#     image_data = image.read()
+#
+#     #grading function
+#     from
+#     result = grade_image(image_data, assignment)
+#
+#     # Parse out the percent score from the response
+#     score_match = re.search(r'(\d+)%', result)
+#     score = int(score_match.group(1)) if score_match else None
+#
+#     #Save to DB
+#     section = Section.objects.get(id=section_id)
+#     assessment = Assessment.objects.create(
+#         user=request.user.profile,
+#         section=section,
+#         prompt="Image grading assessment"
+#     )
+#     report = ReportCard.objects.create(
+#         user=request.user.profile,
+#         assessment=assessment,
+#         feedback={"raw": result, "score": score}
+#     )
+#
+#     return {"score": score, "feedback": result, "report_id": report.id}
 
