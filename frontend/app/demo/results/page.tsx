@@ -13,7 +13,7 @@ export default function Results() {
     return (
         <div>
             <h2>Results</h2>
-            <img src={imageUrl ?? ""} alt="submitted drawing" />
+            {imageUrl && <img src={imageUrl} alt="submitted drawing" />}
             <pre>{JSON.stringify(result, null, 2)}</pre>
         </div>
     )

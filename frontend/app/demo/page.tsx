@@ -1,6 +1,5 @@
 'use client'
 import ImageInput from "@/components/demo/ImageInput";
-import "./demo-styles.css"
 import {useState} from "react";
 import Image from "next/image";
 

@@ -1,5 +1,0 @@
-@import "tailwindcss";
-
-.enter-forms {
-    @apply flex min-h-screen items-center justify-center bg-gray-200;
-}
