@@ -139,3 +139,9 @@ def get_concept_details(request, concept_name: str):
 #
 #     return {"score": score, "feedback": result, "report_id": report.id}
 
+@api.post("/imageTest")
+def returnBytes(request, image: UploadedFile = File(...)):
+    # Read image as raw bytes
+    image_data = image.read()
+
+    return image_data
