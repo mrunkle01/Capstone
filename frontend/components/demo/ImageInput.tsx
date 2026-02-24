@@ -2,7 +2,7 @@
 import {useRef, useState} from "react";
 import clsx from "clsx";
 import {useRouter} from "next/navigation";
-import { assessImage } from "@/lib/api/assessment"
+import { assessImage, testImage } from "@/lib/api/assessment"
 
 export default function ImageInput({ setImageUrl }: { setImageUrl: (url: string) => void }) {
     const router = useRouter()
@@ -32,12 +32,13 @@ export default function ImageInput({ setImageUrl }: { setImageUrl: (url: string)
             setIsLoading(true);
             // const data = await assessImage(formData) TODO UNCOMMENT AND DELETE FAKE
             // FAKE DATA
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            const data = {
-                score: 72,
-                feedback: "Your line work is good but shading needs improvement",
-                report_id: 1
-            }
+            // await new Promise(resolve => setTimeout(resolve, 2000));
+            // const data = {
+            //     score: 72,
+            //     feedback: "Your line work is good but shading needs improvement",
+            //     report_id: 1
+            // }
+            const data = await testImage(formData);
             //END OF FAKE DATa
             localStorage.setItem("assessmentResult", JSON.stringify(data));
             localStorage.setItem("imageUrl", imgUrl.current ?? "");
