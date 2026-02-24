@@ -8,7 +8,7 @@ export async function assessImage(formData: FormData){
    return response.json();
 }
 export async function testImage(formData: FormData){
-    const url = `${process.env.NEXT_PUBLIC_API_URL}/api/imageTest`
+    const url = `https://capstone-production-6abe.up.railway.app/api/imageTest`
     const response = await fetch(url, {
         method: "POST",
         body: formData,
