@@ -38,7 +38,10 @@ ALLOWED_HOSTS = [
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-CSRF_TRUSTED_ORIGINS = ['https://capstone-production-6abe.up.railway.app']
+CSRF_TRUSTED_ORIGINS = [
+    'https://capstone-production-6abe.up.railway.app',
+    'https://capstone-pi-liard.vercel.app',  # Mark - frontend Vercel URL
+]
 
 
 # Application definition
@@ -156,4 +159,9 @@ ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_EMAIL_REQUIRED = True
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 LOGIN_REDIRECT_URL = '/'
+
+# Mark - CORS allowed origins
+CORS_ALLOWED_ORIGINS = [
+    'https://capstone-pi-liard.vercel.app'
+]
 
