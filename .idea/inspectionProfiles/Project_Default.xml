@@ -7,6 +7,9 @@
           <option value="gunicorn" />
           <option value="packaging" />
           <option value="psycopg2-binary" />
+          <option value="dj-database-url" />
+          <option value="python-dotenv" />
+          <option value="whitenoise" />
         </list>
       </option>
     </inspection_tool>

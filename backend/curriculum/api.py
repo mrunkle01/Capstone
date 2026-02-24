@@ -16,7 +16,7 @@ api = NinjaAPI()
 def home():
     return "App is working"
 
-@api.post("/register")
+@api.post("/auth/register")
 def register(request, data: RegisterSchema):
     """Create new user with profile"""
     # Create user
