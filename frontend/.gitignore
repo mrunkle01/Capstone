@@ -42,3 +42,6 @@ next-env.d.ts
 
 # local reference docs (not for version control)
 PROJECT_STATE.md
+
+# mockups (local only)
+/mockup

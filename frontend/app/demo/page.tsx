@@ -16,6 +16,7 @@ export default function Demo() {
                     src={imageURL}
                     alt="user inputted image"
                     width={350} height={280}
+                    style={{ width: '100%', maxWidth: 350, height: 'auto' }} //makes the image mobile friendly
                 />
                 )}
             </div>
