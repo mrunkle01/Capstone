@@ -38,7 +38,10 @@ ALLOWED_HOSTS = [
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-CSRF_TRUSTED_ORIGINS = ['https://capstone-production-6abe.up.railway.app']
+CSRF_TRUSTED_ORIGINS = [
+    'https://capstone-production-6abe.up.railway.app',
+    'https://capstone-pi-liard.vercel.app',  # Mark - frontend Vercel URL
+]
 
 
 # Application definition
@@ -51,19 +54,20 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'curriculum',
-    'ninja'
+    'ninja',
+    'corsheaders',  # Mark - CORS
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # Mark - CORS (must be before CommonMiddleware)
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware'
-
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
 ROOT_URLCONF = 'art_project.urls'
@@ -157,3 +161,9 @@ ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_EMAIL_REQUIRED = True
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 LOGIN_REDIRECT_URL = '/'
+
+# Mark - CORS allowed origins
+CORS_ALLOWED_ORIGINS = [
+    'https://capstone-pi-liard.vercel.app'
+]
+
