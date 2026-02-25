@@ -111,7 +111,31 @@ def get_concept_details(request, concept_name: str):
         "sample_exercises": concept.sample_exercise_prompts
     }
 
-@api.post("/assess/{section_id}")
+# @api.post("/assess/{section_id}")
+# def submit_assessment(request, section_id: int, assignment: str, image: UploadedFile = File(...)):
+#     image_data = image.read()
+#
+#     from ai.grading_agentv2 import grade_art
+#     result = grade_art(assignment, image_data)
+#
+#     score = int(result.score * 100)
+#
+#     # Save to DB
+#     section = Section.objects.get(id=section_id)
+#     assessment = Assessment.objects.create(
+#         user=request.user.profile,
+#         section=section,
+#         prompt="Image grading assessment"
+#     )
+#     report = ReportCard.objects.create(
+#         user=request.user.profile,
+#         assessment=assessment,
+#         feedback={"raw": result.feedback, "score": score}
+#     )
+#
+#     return {"score": score, "feedback": result.feedback, "report_id": report.id}
+
+@api.post("/imageTest")
 def submit_assessment(request, section_id: int, assignment: str, image: UploadedFile = File(...)):
     image_data = image.read()
 
@@ -134,10 +158,3 @@ def submit_assessment(request, section_id: int, assignment: str, image: Uploaded
     )
 
     return {"score": score, "feedback": result.feedback, "report_id": report.id}
-
-# @api.post("/imageTest")
-# def returnBytes(request, image: UploadedFile = File(...)):
-#     # Read image as raw bytes
-#     image_data = image.read()
-#
-#     return {"success": True, "size": len(image_data)}
