@@ -1,7 +1,7 @@
 from ninja import NinjaAPI, File
 from ninja.files import UploadedFile
 from django.contrib.auth.models import User
-from ai.grading_agentv2 import grade_art
+from .grading_agentv2 import grade_art
 from .models import UserProfile, ConceptLibrary, Section, Assessment, ReportCard
 from .schemas import (RegisterSchema, UpdateProfileSchema, LearningGoalSchema,
                       PretestResultSchema, PretestQuestionSchema,PretestQuestionOptionSchema,
@@ -148,4 +148,4 @@ def submit_assessment(request, image: UploadedFile = File(...)):
 
     score = int(result.score * 100)
 
-    return {"score": score, "feedback": result.feedback, "report_id": result.report.id}
+    return {"score": score, "feedback": result.feedback, "report_id": result.report_id}

@@ -164,6 +164,7 @@ LOGIN_REDIRECT_URL = '/'
 
 # Mark - CORS allowed origins
 CORS_ALLOWED_ORIGINS = [
-    'https://capstone-pi-liard.vercel.app'
+    'https://capstone-pi-liard.vercel.app',
+    'http://localhost:3000'
 ]
 
