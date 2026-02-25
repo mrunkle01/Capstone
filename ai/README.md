@@ -1,0 +1,1 @@
+This is a demonstration of the grading agent. It takes in an image and assignment, returning a grade based on performance against the requirements. 
