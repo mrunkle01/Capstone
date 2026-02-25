@@ -113,18 +113,14 @@ def get_concept_details(request, concept_name: str):
 
 @api.post("/assess/{section_id}")
 def submit_assessment(request, section_id: int, assignment: str, image: UploadedFile = File(...)):
-    # Read image as raw bytes
     image_data = image.read()
 
-    #grading function
     from ai.grading_agentv2 import grade_art
     result = grade_art(assignment, image_data)
 
-    # Parse out the percent score from the response
-    score_match = re.search(r'(\d+)%', result)
-    score = int(score_match.group(1)) if score_match else None
+    score = int(result.score * 100)
 
-    #Save to DB
+    # Save to DB
     section = Section.objects.get(id=section_id)
     assessment = Assessment.objects.create(
         user=request.user.profile,
@@ -134,10 +130,10 @@ def submit_assessment(request, section_id: int, assignment: str, image: Uploaded
     report = ReportCard.objects.create(
         user=request.user.profile,
         assessment=assessment,
-        feedback={"raw": result, "score": score}
+        feedback={"raw": result.feedback, "score": score}
     )
 
-    return {"score": score, "feedback": result, "report_id": report.id}
+    return {"score": score, "feedback": result.feedback, "report_id": report.id}
 
 # @api.post("/imageTest")
 # def returnBytes(request, image: UploadedFile = File(...)):
