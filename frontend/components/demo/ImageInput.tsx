@@ -30,7 +30,7 @@ export default function ImageInput({ setImageUrl }: { setImageUrl: (url: string)
             const formData = new FormData();
             formData.append("image", imgFile.current)
             setIsLoading(true);
-            // const data = await assessImage(formData) TODO UNCOMMENT AND DELETE FAKE
+            // const data = await assessImage(formData)
             // FAKE DATA
             // await new Promise(resolve => setTimeout(resolve, 2000));
             // const data = {
@@ -51,7 +51,7 @@ export default function ImageInput({ setImageUrl }: { setImageUrl: (url: string)
 
     return (
         <div className="flex flex-col items-center">
-            <div className="flex">
+            <div className="flex flex-wrap justify-center gap-y-2">
                 <input ref={fileInputRef} type="file" className="absolute right-[9999px]" onChange={handleInputChange}/>
                 <button className="btn-primary bg-blue-400"
                         onClick={() => fileInputRef.current?.click()}>
