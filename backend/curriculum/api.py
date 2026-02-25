@@ -136,11 +136,14 @@ def get_concept_details(request, concept_name: str):
 #     return {"score": score, "feedback": result.feedback, "report_id": report.id}
 
 @api.post("/imageTest")
-def submit_assessment(request, section_id: int, assignment: str, image: UploadedFile = File(...)):
+def submit_assessment(request, section_id: int, image: UploadedFile = File(...)):
     image_data = image.read()
+
+    assignment = "Draw a basic sketch demonstrating line, shape, and shading."
 
     from ai.grading_agentv2 import grade_art
     result = grade_art(assignment, image_data)
+
 
     score = int(result.score * 100)
 
@@ -157,4 +160,4 @@ def submit_assessment(request, section_id: int, assignment: str, image: Uploaded
         feedback={"raw": result.feedback, "score": score}
     )
 
-    return {"score": score, "feedback": result.feedback, "report_id": report.id}
+    return {"score": score, "feedback": result.feedback, "report_id": result.report.id}
