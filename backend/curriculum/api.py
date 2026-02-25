@@ -1,6 +1,7 @@
 from ninja import NinjaAPI, File
 from ninja.files import UploadedFile
 from django.contrib.auth.models import User
+from ai.grading_agentv2 import grade_art
 from .models import UserProfile, ConceptLibrary, Section, Assessment, ReportCard
 from .schemas import (RegisterSchema, UpdateProfileSchema, LearningGoalSchema,
                       PretestResultSchema, PretestQuestionSchema,PretestQuestionOptionSchema,
@@ -136,15 +137,15 @@ def get_concept_details(request, concept_name: str):
 #     return {"score": score, "feedback": result.feedback, "report_id": report.id}
 
 @api.post("/imageTest")
-def test_assessment(request, image: UploadedFile = File(...)):
+def submit_assessment(request, image: UploadedFile = File(...)):
     image_data = image.read()
 
-    from ai.grading_agentv2 import grade_art
-
-    # Default assignment prompt for demo
     assignment = "Draw a basic sketch demonstrating line, shape, and shading."
 
+
     result = grade_art(assignment, image_data)
+
+
     score = int(result.score * 100)
 
-    return {"score": score, "feedback": result.feedback, "report_id": result.report_id}
+    return {"score": score, "feedback": result.feedback, "report_id": result.report.id}
