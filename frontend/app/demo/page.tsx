@@ -11,7 +11,7 @@ export default function Demo() {
                 Upload your drawing
             </h1>
             <p className="prompt-description">
-                Draw a basic sketch demonstrating line, shape, and shading.
+                Prompt: Draw a basic sketch demonstrating line, shape, and shading.
             </p>
             <div className="image-input">
                 {imageURL && (<Image

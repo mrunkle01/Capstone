@@ -19,7 +19,7 @@ def grade_art(assignment: str, img: bytes) -> Grade:
         headers={'Authorization': 'Bearer ' + os.environ.get('OLLAMA_API_KEY')}
     )
 
-    model = 'qwen3-vl:235b-cloud'
+    model = 'qwen3-vl:32b-cloud'
 
     img_final = base64.b64encode(img).decode()
 

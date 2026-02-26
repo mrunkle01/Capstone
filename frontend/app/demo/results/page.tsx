@@ -19,9 +19,9 @@ export default function Results() {
     let scoreColor: string;
     if (!result) {
         scoreColor = "text-gray-400";
-    } else if (result.score >= 80) {
+    } else if (result.score >= 70) {
         scoreColor = "text-green-600";
-    } else if (result.score >= 50) {
+    } else if (result.score >= 55) {
         scoreColor = "text-yellow-500";
     } else {
         scoreColor = "text-red-500";

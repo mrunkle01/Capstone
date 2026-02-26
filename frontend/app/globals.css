@@ -58,7 +58,7 @@
 
 /* Demo styles */
 .prompt-description {
-    @apply text-center text-gray-600 text-base italic mt-2 px-4;
+    @apply w-full text-center text-gray-600 text-base italic mt-2 px-4;
 }
 .header-1 {
     @apply text-3xl text-black font-bold text-center pt-10 capitalize;
