@@ -1,4 +1,4 @@
-
+//This will store the chatbot
 
 export default function Chat(){
     return (
