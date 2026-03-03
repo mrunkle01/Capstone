@@ -1,7 +1,8 @@
-import {mockDashboardData, LessonStatus, User, Lesson} from "@/lib/types/dashboard";
+import {mockDashboardData, User, Lesson} from "@/lib/types/dashboard";
 
 export default function Dashboard() {
     console.log("Starting Dashboard");
+    //need to fetch here to get the data
     console.log(mockDashboardData)
     const user: User = mockDashboardData.user
     const lessons: Lesson[] = mockDashboardData.sections[0].lessons
