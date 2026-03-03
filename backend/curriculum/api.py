@@ -1,7 +1,7 @@
 from ninja import NinjaAPI, File
 from ninja.files import UploadedFile
 from django.contrib.auth.models import User
-from .grading_agentv2 import grade_art
+from .atelier_agent import grade_art, generate_lesson_plan
 from .models import UserProfile, ConceptLibrary, Section, Assessment, ReportCard
 from .schemas import (RegisterSchema, UpdateProfileSchema, LearningGoalSchema,
                       PretestResultSchema, PretestQuestionSchema,PretestQuestionOptionSchema,
@@ -153,17 +153,22 @@ def submit_assessment(request, image: UploadedFile = File(...)):
 @api.get("/sectionDemo")
 def generate_section_demo(request):
 
-    #section = func()
+    topic = "Manga"
+    section = generate_lesson_plan(topic)
 
-    sectionJSON = { "section" : "section name",
-                "Lessons" : [{"Lesson 1" : "Lesson 1 info"},
-                           { "Lesson 2" : "Lesson 2 info"},
-                           { "Lesson 3" : "Lesson 3 info" }],
+    sectionJSON = { "Section" : section.section,
+                "Lessons" : [
+                             {"title" : lesson.title,
+                              "content" : lesson.content,
+                              "order" : lesson.int}
 
-               "Assessment" : {"title" : "title info",
-                               "content" : "content info",
-                               "requirements" : [{"name" : "nameinfo"},
-                                                 {"points" : "points info"}]
+                             for lesson in section.lessons],
+
+               "Assessment" : {"title" : section.assessment.title,
+                               "content" : section.assessment.content,
+                               "requirements" : [{"name" : requirement.name,
+                                                 "points" : requirement.points}
+                                                 for requirement in section.assessment.requirements]
                                }
                }
 
