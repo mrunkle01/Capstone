@@ -2,7 +2,6 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-// @ts-ignore
 import { AssessmentResult } from "@/lib/types/assessment"
 
 export default function Results() {
