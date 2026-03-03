@@ -149,3 +149,28 @@ def submit_assessment(request, image: UploadedFile = File(...)):
     score = int(result.score * 100)
 
     return {"score": score, "feedback": result.feedback, "report_id": result.report_id}
+
+@api.get("/sectionDemo")
+def generate_section_demo(request):
+
+    #section = func()
+
+    sectionJSON = { "section" : "section name",
+                "Lessons" : [{"Lesson 1" : "Lesson 1 info"},
+                           { "Lesson 2" : "Lesson 2 info"},
+                           { "Lesson 3" : "Lesson 3 info" }],
+
+               "Assessment" : {"title" : "title info",
+                               "content" : "content info",
+                               "requirements" : [{"name" : "nameinfo"},
+                                                 {"points" : "points info"}]
+                               }
+               }
+
+    return sectionJSON
+
+
+#TODO
+@api.get("/dashboard")
+def load_dashboard(request):
+    return 0
