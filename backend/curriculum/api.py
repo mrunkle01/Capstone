@@ -206,3 +206,10 @@ def generate_section_demo(request):
 @api.get("/dashboard")
 def load_dashboard(request):
     return 0
+
+
+#TODO
+#design get request endpoint to allow AI to grab user skill for purposes of modifying lesson plan
+
+#TODO
+#design a put request endpoint to allow the AI to update the user skill level afterthe  modifying lesson plan
