@@ -52,16 +52,11 @@ def register(request, data: RegisterSchema):
 
 @api.post("/auth/login/")
 def user_login(request, data: UserInSchema):
-    #uses either username or email for login
-    identifier = data.username or data.email
-
-    if not identifier:
-        return {"message": "Username or email is required"}, 400
 
     if not data.password:
         return {"message": "Password is required"}, 400
     # handles either email or user
-    user = authenticate(request, username=identifier, password=data.password)
+    user = authenticate(request, username=data.identifier, password=data.password)
 
     #logs the user in
     if user is not None:

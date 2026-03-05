@@ -2,8 +2,7 @@ from ninja import Schema
 from typing import Optional
 
 class UserInSchema(Schema):
-    username: Optional[str] = None
-    email: Optional[str] = None
+    identifier : str
     password: Optional[str] = None
 
 class RegisterSchema(Schema):
