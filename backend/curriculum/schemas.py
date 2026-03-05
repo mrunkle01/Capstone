@@ -1,6 +1,10 @@
 from ninja import Schema
 from typing import Optional
 
+class UserInSchema(Schema):
+    username: Optional[str] = None
+    email: Optional[str] = None
+    password : str
 
 class RegisterSchema(Schema):
     username: str

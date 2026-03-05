@@ -1,17 +1,28 @@
-from ninja import NinjaAPI, File
+from ninja import NinjaAPI, File, Form
 from ninja.files import UploadedFile
+from ninja.security import SessionAuth
+from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User
 from .atelier_agent import grade_art, generate_lesson_plan
 from .models import UserProfile, ConceptLibrary, Section, Assessment, ReportCard
 from .schemas import (RegisterSchema, UpdateProfileSchema, LearningGoalSchema,
                       PretestResultSchema, PretestQuestionSchema,PretestQuestionOptionSchema,
                       SectionSchema, LessonSchema, UserLessonSchema, AssessmentSchema,
-                      ReportCardSchema, ChatLogSchema)
+                      ReportCardSchema, ChatLogSchema, UserInSchema)
+
+
+
+
 import re
 
 api = NinjaAPI()
 
 #/api before every call
+
+#add this to each endpoint you only want functional when the user is logged in
+@api.get("/protected", auth=SessionAuth())
+def protected_view(request):
+    return {"user": request.user.username, "message": "You have access"}
 
 @api.get('/')
 def home():
@@ -38,6 +49,25 @@ def register(request, data: RegisterSchema):
         "username": user.username,
         "message": "User created successfully"
     }
+
+@api.post("/auth/login/")
+def user_login(request, data: UserInSchema):
+    #uses either username or email for login
+    identifier = data.username or data.email
+
+    if not identifier:
+        return {"message": "Username or email is required"}, 400
+
+    # handles either email or user
+    user = authenticate(request, username=identifier, password=data.password)
+
+    #logs the user in
+    if user is not None:
+        login(request, user)
+        return {"message": "Login successful"}
+    else:
+        return {"message": "Invalid credentials"}, 401
+
 
 @api.get("/profile")
 def get_current_profile(request):
@@ -152,7 +182,7 @@ def submit_assessment(request, image: UploadedFile = File(...)):
 
 @api.get("/sectionDemo")
 def generate_section_demo(request):
-
+    
     topic = "Manga"
     section = generate_lesson_plan(topic)
 

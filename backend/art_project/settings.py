@@ -168,3 +168,8 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000'
 ]
 
+
+AUTHENTICATION_BACKENDS = [
+    'curriculum.backends.UsernameOrEmailBackend',
+    'django.contrib.auth.backends.ModelBackend',  # keep as fallback
+]
