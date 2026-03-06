@@ -82,7 +82,7 @@ def generate_lesson_plan(topic: str) -> LessonPlan:
     # Model Setup
     load_dotenv()
     client = Client(
-        host=os.environ.get('OLLAMA_BASE_URL'),
+        host="https://ollama.com", #Mark: i made this the same as the function above, it was giving me errors when it was os.environ.get('OLLAMA_API_KEY')
         headers={'Authorization': 'Bearer ' + os.environ.get('OLLAMA_API_KEY')}
     )
 

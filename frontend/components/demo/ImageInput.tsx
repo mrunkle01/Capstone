@@ -30,19 +30,10 @@ export default function ImageInput({ setImageUrl }: { setImageUrl: (url: string)
             const formData = new FormData();
             formData.append("image", imgFile.current)
             setIsLoading(true);
-            // const data = await assessImage(formData)
-            // FAKE DATA
-            // await new Promise(resolve => setTimeout(resolve, 2000));
-            // const data = {
-            //     score: 72,
-            //     feedback: "Your line work is good but shading needs improvement",
-            //     report_id: 1
-            // }
             const data = await testImage(formData);
-            //END OF FAKE DATa
             localStorage.setItem("assessmentResult", JSON.stringify(data));
             localStorage.setItem("imageUrl", imgUrl.current ?? "");
-            router.push(`/demo/results`);
+            router.push(`/demo/1/results`);
         } catch (error) {
             setError("Something went wrong. Please try again.")
             setIsLoading(false);

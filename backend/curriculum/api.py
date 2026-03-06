@@ -187,7 +187,7 @@ def generate_section_demo(request):
                 "Lessons" : [
                              {"title" : lesson.title,
                               "content" : lesson.content,
-                              "order" : lesson.int}
+                              "order" : lesson.order} #MARK: I touched this to make is lesson.order instead of lesson.int
 
                              for lesson in section.lessons],
 
