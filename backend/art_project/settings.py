@@ -55,13 +55,13 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'curriculum',
     'ninja',
-    'corsheaders',  # Mark - CORS
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
-    'corsheaders.middleware.CorsMiddleware',  # Mark - CORS (must be before CommonMiddleware)
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -162,7 +162,7 @@ ACCOUNT_EMAIL_REQUIRED = True
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 LOGIN_REDIRECT_URL = '/'
 
-# Mark - CORS allowed origins
+CORS_ALLOW_CREDENTIALS = True # needed for login post request
 CORS_ALLOWED_ORIGINS = [
     'https://capstone-pi-liard.vercel.app',
     'http://localhost:3000'

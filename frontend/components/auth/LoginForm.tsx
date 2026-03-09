@@ -10,6 +10,7 @@ export default function LoginForm() {
     const [password, setPassword] = useState("")
     const [usernameErrors, setUsernameErrors] = useState<string[]>([])
     const [passwordErrors, setPasswordErrors] = useState<string[]>([])
+    const [loginErrors, setLoginErrors] = useState(false)
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault()
@@ -18,8 +19,14 @@ export default function LoginForm() {
         if (!password) setPasswordErrors(["Password cannot be empty."])
         if (!username || !password) return
 
-        // await loginUser(username, password)
-        router.push("/demo")
+        try{
+            await loginUser(username, password)
+            router.push("/dashboard")
+        }catch (e){
+            console.log(e)
+            setLoginErrors(true)
+        }
+
     }
 
     return (
@@ -53,7 +60,12 @@ export default function LoginForm() {
                         type="password"
                         id="password"
                         value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        onChange={(e) => {
+                            setPassword(e.target.value)
+                            setUsernameErrors([])
+                            setPasswordErrors([])
+                            setLoginErrors(false)
+                        }}
                     />
                     {passwordErrors.length > 0 && (
                         <ul className="error-message">
@@ -63,6 +75,9 @@ export default function LoginForm() {
                         </ul>
                     )}
                 </div>
+                {loginErrors && (
+                    <p className="error-message">Invalid username or password.</p>
+                )}
                 <button className="auth-btn bg-blue-600 hover:bg-blue-700">
                     Sign In
                 </button>

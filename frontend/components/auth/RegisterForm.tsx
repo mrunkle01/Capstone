@@ -10,6 +10,7 @@ export default function RegisterForm() {
     const [email, setEmail] = useState("")
     const [username, setUsername] = useState("")
     const [password, setPassword] = useState("")
+    const [registerErrors, setRegisterErrors] = useState(false)
     const [emailErrors, setEmailErrors] = useState<string[]>([])
     const [usernameErrors, setUsernameErrors] = useState<string[]>([])
     const [passwordErrors, setPasswordErrors] = useState<string[]>([])
@@ -27,8 +28,13 @@ export default function RegisterForm() {
 
         if (!emailRes.valid || !usernameRes.valid || !passwordRes.valid) return
 
-        // await registerUser(email, username, password)
-        router.replace("/login")
+        try{
+            await registerUser(email, username, password)
+            router.replace("/login")
+        }catch (e){
+            console.log(e)
+            setRegisterErrors(true)
+        }
     }
 
     return (
@@ -86,6 +92,9 @@ export default function RegisterForm() {
                         </ul>
                     )}
                 </div>
+                {registerErrors && (
+                    <p className="error-message">Something went wrong. Please try again.</p>
+                )}
                 <button className="auth-btn bg-green-600 hover:bg-green-700">
                     Register
                 </button>
