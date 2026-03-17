@@ -1,0 +1,279 @@
+/* Auth pages — login & register */
+
+:root {
+    --ap-form-bg:    #f7f4ee;
+    --ap-form-text:  #1e1c18;
+    --ap-form-muted: #7a7060;
+    --ap-form-border:#d8d0c0;
+    --ap-form-focus: #2a2925;
+    --ap-error:      #c0392b;
+}
+
+/* SHELL */
+.ap-page {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 100vh;
+    font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
+}
+
+/* LEFT PANEL */
+.ap-left {
+    background: var(--lp-bg);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 40px 48px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* grain */
+.ap-left::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+/* gold circle decoration */
+.ap-left::after {
+    content: '';
+    position: absolute;
+    bottom: -120px;
+    left: -120px;
+    width: 400px;
+    height: 400px;
+    border-radius: 50%;
+    border: 1px solid rgba(201,168,76,0.12);
+    pointer-events: none;
+}
+
+.ap-logo {
+    font-family: var(--font-playfair), 'Playfair Display', serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--lp-text);
+    text-decoration: none;
+    position: relative;
+    z-index: 1;
+}
+.ap-logo span { color: var(--lp-gold); }
+
+.ap-left-body {
+    position: relative;
+    z-index: 1;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 40px 0;
+}
+
+.ap-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--lp-gold);
+    margin-bottom: 24px;
+}
+.ap-eyebrow::before {
+    content: '';
+    display: block;
+    width: 24px;
+    height: 1px;
+    background: var(--lp-gold);
+}
+
+.ap-headline {
+    font-family: var(--font-playfair), 'Playfair Display', serif;
+    font-size: clamp(2rem, 3.5vw, 3rem);
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--lp-text);
+    margin-bottom: 20px;
+}
+.ap-headline em {
+    font-style: italic;
+    font-weight: 400;
+    color: var(--lp-gold);
+}
+
+.ap-desc {
+    font-size: 0.9rem;
+    line-height: 1.7;
+    color: var(--lp-muted);
+    font-weight: 300;
+    max-width: 320px;
+}
+
+.ap-steps {
+    margin-top: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+.ap-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+}
+.ap-step-num {
+    font-family: var(--font-playfair), 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 0.75rem;
+    color: var(--lp-gold);
+    min-width: 20px;
+    padding-top: 2px;
+}
+.ap-step-text {
+    font-size: 0.82rem;
+    color: var(--lp-muted);
+    line-height: 1.5;
+    font-weight: 300;
+}
+.ap-step-text strong {
+    color: var(--lp-text);
+    font-weight: 500;
+}
+
+.ap-left-footer {
+    position: relative;
+    z-index: 1;
+    font-size: 0.72rem;
+    color: var(--lp-muted);
+    letter-spacing: 0.04em;
+}
+.ap-left-footer a {
+    color: var(--lp-gold);
+    text-decoration: none;
+}
+
+/* RIGHT PANEL */
+.ap-right {
+    background: var(--ap-form-bg);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 60px 56px;
+}
+
+.ap-form-header {
+    margin-bottom: 36px;
+}
+.ap-form-header h2 {
+    font-family: var(--font-playfair), 'Playfair Display', serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--ap-form-text);
+    margin-bottom: 8px;
+}
+.ap-form-header p {
+    font-size: 0.875rem;
+    color: var(--ap-form-muted);
+    font-weight: 300;
+}
+.ap-form-header p a {
+    color: var(--ap-form-text);
+    font-weight: 500;
+    text-decoration: none;
+    border-bottom: 1px solid var(--ap-form-border);
+    transition: border-color 0.2s;
+}
+.ap-form-header p a:hover { border-color: var(--ap-form-text); }
+
+/* FORM */
+.ap-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.ap-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.ap-form-group label {
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ap-form-muted);
+}
+
+.ap-form-group input {
+    background: white;
+    border: 1px solid var(--ap-form-border);
+    border-radius: 8px;
+    padding: 13px 16px;
+    font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 400;
+    color: var(--ap-form-text);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    width: 100%;
+}
+.ap-form-group input::placeholder { color: #bbb4a4; }
+.ap-form-group input:focus {
+    border-color: var(--ap-form-focus);
+    box-shadow: 0 0 0 3px rgba(42,41,37,0.08);
+}
+
+.ap-field-error {
+    font-size: 0.75rem;
+    color: var(--ap-error);
+    font-weight: 400;
+}
+
+.ap-input-error {
+    border-color: var(--ap-error) !important;
+    box-shadow: 0 0 0 3px rgba(192,57,43,0.08) !important;
+}
+
+.ap-btn-submit {
+    background: var(--ap-form-text);
+    color: var(--ap-form-bg);
+    border: none;
+    border-radius: 8px;
+    padding: 15px 24px;
+    font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    margin-top: 4px;
+}
+.ap-btn-submit:hover { background: #3d3b34; }
+.ap-btn-submit:active { transform: scale(0.99); }
+
+.ap-password-hint {
+    font-size: 0.72rem;
+    color: var(--ap-form-muted);
+    font-weight: 300;
+    margin-top: 2px;
+}
+
+.ap-form-hint {
+    font-size: 0.75rem;
+    color: var(--ap-form-muted);
+    font-weight: 300;
+    line-height: 1.5;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .ap-page { grid-template-columns: 1fr; }
+    .ap-left { display: none; }
+    .ap-right { padding: 48px 28px; }
+}

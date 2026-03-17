@@ -76,6 +76,44 @@
     @apply px-4 py-2 mx-1 text-white rounded-sm self-center font-semibold;
 }
 
+/* Dashboard loading skeleton */
+.skeleton-page {
+    @apply p-6 max-w-3xl animate-pulse;
+}
+.skeleton-greeting {
+    @apply h-8 bg-gray-200 rounded w-48 mb-6;
+}
+.skeleton-section-title {
+    @apply h-6 bg-gray-200 rounded w-64 mb-4 border-b pb-2;
+}
+.skeleton-lesson-list {
+    @apply flex flex-col gap-3 mb-4;
+}
+.skeleton-lesson-card {
+    @apply border rounded p-3;
+}
+.skeleton-lesson-title {
+    @apply h-4 bg-gray-200 rounded w-40 mb-2;
+}
+.skeleton-line-full {
+    @apply h-3 bg-gray-100 rounded w-full mb-1;
+}
+.skeleton-line-short {
+    @apply h-3 bg-gray-100 rounded w-5/6;
+}
+.skeleton-assessment {
+    @apply border rounded p-4 bg-gray-50;
+}
+.skeleton-assessment-title {
+    @apply h-5 bg-gray-200 rounded w-48 mb-3;
+}
+.skeleton-assessment-line {
+    @apply h-3 bg-gray-100 rounded w-4/5 mb-3;
+}
+.skeleton-requirement {
+    @apply h-3 bg-gray-100 rounded w-56 mb-2;
+}
+
 /* Landing page styles */
 
 :root {

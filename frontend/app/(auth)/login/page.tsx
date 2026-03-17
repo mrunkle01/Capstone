@@ -1,9 +1,6 @@
+import LoginForm from "@/components/auth/LoginForm"
+import "../auth.css"
 
-import LoginForm from "@/components/auth/LoginForm";
 export default function LoginPage() {
-    return (
-        <div className="enter-forms">
-            <LoginForm/>
-        </div>
-    )
+  return <LoginForm />
 }

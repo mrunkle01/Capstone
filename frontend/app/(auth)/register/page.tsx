@@ -1,10 +1,6 @@
-import RegisterForm from '@/components/auth/RegisterForm'
-
+import RegisterForm from "@/components/auth/RegisterForm"
+import "../auth.css"
 
 export default function RegisterPage() {
-    return (
-        <div className="enter-forms">
-            <RegisterForm />
-        </div>
-    )
+  return <RegisterForm />
 }
