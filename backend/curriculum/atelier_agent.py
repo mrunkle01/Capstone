@@ -15,7 +15,6 @@ options = {
     'temperature': 0.8
 }
 
-
 class Lesson(BaseModel):
     title: str
     content: str
