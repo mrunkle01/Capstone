@@ -206,6 +206,7 @@ def generate_section_demo(request):
 @api.post("/auth/logout")
 def user_logout(request):
     logout(request)
+    return {"message": "User logged out"}
 
 #TODO
 @api.get("/dashboard")
