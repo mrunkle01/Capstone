@@ -1,5 +1,6 @@
 export default function Greeting(){
     //TODO Hard coded user for now later will be rendered in Greeting component
+    //use profile backend
     const user = {
         username: "Mark",
         goal: "Manga",
