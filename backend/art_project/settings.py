@@ -173,3 +173,7 @@ AUTHENTICATION_BACKENDS = [
     'curriculum.backends.UsernameOrEmailBackend',
     'django.contrib.auth.backends.ModelBackend',  # keep as fallback
 ]
+
+
+LOGIN_REDIRECT_URL = '/' # Redirect to the homepage after login
+LOGOUT_REDIRECT_URL = '/' # Redirect to the homepage after logout

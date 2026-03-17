@@ -1,7 +1,7 @@
 from ninja import NinjaAPI, File, Form
 from ninja.files import UploadedFile
 from ninja.security import SessionAuth
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from .atelier_agent import grade_art, generate_lesson_plan
 from .models import UserProfile, ConceptLibrary, Section, Assessment, ReportCard
@@ -177,6 +177,8 @@ def submit_assessment(request, image: UploadedFile = File(...)):
 
     return {"score": score, "feedback": result.feedback, "report_id": result.report_id}
 
+#TODO
+#populate database with relevant information for user
 @api.get("/sectionDemo")
 def generate_section_demo(request):
     
@@ -201,6 +203,9 @@ def generate_section_demo(request):
 
     return sectionJSON
 
+@api.post("/auth/logout")
+def user_logout(request):
+    logout(request)
 
 #TODO
 @api.get("/dashboard")
@@ -212,4 +217,4 @@ def load_dashboard(request):
 #design get request endpoint to allow AI to grab user skill for purposes of modifying lesson plan
 
 #TODO
-#design a put request endpoint to allow the AI to update the user skill level afterthe  modifying lesson plan
+#design a put request endpoint to allow the AI to update the user skill level after the  modifying lesson plan
