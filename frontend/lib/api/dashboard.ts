@@ -2,6 +2,7 @@ import {SectionResponse} from "@/lib/types/dashboard";
 
 export async function loadSections(){
     const url = `${process.env.NEXT_PUBLIC_API_URL}/api/sectionDemo`
+
     const response = await fetch(url, {
         method: "GET"
     })
