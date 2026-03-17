@@ -65,6 +65,11 @@ def user_login(request, data: UserInSchema):
     else:
         return {"message": "Invalid credentials"}, 401
 
+@api.post("/auth/logout/")
+def user_logout(request):
+    logout(request)
+    return {"message": "User logged out"}
+
 
 @api.get("/profile")
 def get_current_profile(request):
@@ -75,19 +80,6 @@ def get_current_profile(request):
         "artistic_goal": request.user.profile.artistic_goal,
         "has_curriculum": request.user.profile.has_active_curriculum
     }
-
-@api.get("/profile/all")
-def get_all_profiles(request):
-    """Get all user profiles"""
-    return [
-        {
-            "username": u.user.username,
-            "skill_level": u.skill_level,
-            "artistic_goal": u.artistic_goal,
-            "has_curriculum": u.has_active_curriculum
-        }
-        for u in UserProfile.objects.all()
-    ]
 
 @api.put("/profile")
 def update_profile(request, data: UpdateProfileSchema):
@@ -202,11 +194,6 @@ def generate_section_demo(request):
                }
 
     return sectionJSON
-
-@api.post("/auth/logout")
-def user_logout(request):
-    logout(request)
-    return {"message": "User logged out"}
 
 #TODO
 @api.get("/dashboard")
