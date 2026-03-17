@@ -5,8 +5,6 @@ import Greeting from "@/components/dashboard/Greeting";
 
 
 export default async function Dashboard() {
-    console.log("Starting Dashboard");
-
     let sectionInfo: SectionResponse
 
     try {
