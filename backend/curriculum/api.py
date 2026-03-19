@@ -172,6 +172,16 @@ def submit_assessment(request, image: UploadedFile = File(...)):
 #generate dashboard data
 @api.get("/generate")
 def generate_dashboard(request, topic : str, timeCommit : str, skillLevel: str):
+    try:
+        section = generate_lesson_plan(topic, timeCommit, skillLevel)
+    except Exception as e:
+        raise e
+
+    request.user.profile.time_commitment = timeCommit
+    request.user.profile.skill_level = skillLevel
+    request.user.profile.artistic_goal = topic
+    request.user.profile.save()
+
 
     sectionJSON = { "Section" : section.section,
                 "Lessons" : [
