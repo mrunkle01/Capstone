@@ -8,6 +8,7 @@ export async function loadSections(userInfo:UserInfo){
     const url = `${process.env.NEXT_PUBLIC_API_URL}/api/generate?topic=${userInfo.topic}&timeCommit=${userInfo.timeCommit}%2FDay&skillLevel=${userInfo.skillLevel}`
     const response = await fetch(url, {
         method: "GET",
+        credentials: "include",
     })
     if (!response.ok) {
         throw new Error("Failed to load sections");
