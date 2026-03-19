@@ -170,10 +170,12 @@ def submit_assessment(request, image: UploadedFile = File(...)):
     return {"score": score, "feedback": result.feedback, "report_id": result.report_id}
 
 #generate dashboard data
-@api.get("/generate")
+@api.post("/generate")
 def generate_dashboard(request, topic : str, timeCommit : str, skillLevel: str):
-
-    section = generate_lesson_plan(topic, timeCommit, skillLevel)
+    try:
+        section = generate_lesson_plan(topic, timeCommit, skillLevel)
+    except Exception as e:
+        raise e
 
     sectionJSON = { "Section" : section.section,
                 "Lessons" : [
