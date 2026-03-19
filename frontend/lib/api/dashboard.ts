@@ -9,6 +9,7 @@ export async function loadSections(userInfo:UserInfo){
     const response = await fetch(url, {
         method: "GET",
         credentials: "include",
+
     })
     if (!response.ok) {
         throw new Error("Failed to load sections");
