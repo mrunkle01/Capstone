@@ -177,6 +177,11 @@ def generate_dashboard(request, topic : str, timeCommit : str, skillLevel: str):
     except Exception as e:
         raise e
 
+    request.user.profile.time_commitment = timeCommit
+    request.user.profile.skill_level = skillLevel
+    request.user.profile.artistic_goal = topic
+    request.user.profile.save()
+
     sectionJSON = { "Section" : section.section,
                 "Lessons" : [
                              {"title" : lesson.title,
