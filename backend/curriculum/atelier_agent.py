@@ -173,28 +173,38 @@ def generate_lesson_plan(topic: str, time_commit : str, skill : str) -> LessonPl
     response = con.client.chat(
         model,
         messages=prompt, format=LessonPlan.model_json_schema(),
-        tools=[get_user_materials],
-        think=True, options=options)
-    print(response.message.thinking)
-    print(response.message.tool_calls)
-    # Handle Tool Calls
-    info = []
-    for call in response.message.tool_calls:
-        func = tools.get(call.function.name)
-        if func:
-            # Try Catch
-            result = func(**call.function.arguments)
-            info.append({'role': 'tool', 'tool_name': call.function.name, 'content': str(result)})
-
-    prompt += info
-
-    informed_response = con.client.chat(
-        model,
-        messages=prompt, format=LessonPlan.model_json_schema(),
-        tools=[get_user_materials],
         think=True, options=options)
 
     print(response.message.thinking)
 
-    lesson_plan: LessonPlan = LessonPlan.model_validate_json(informed_response.message.content)
+    # TODO: Re-enable materials tool call once get_user_materials is implemented
+    # response = con.client.chat(
+    #     model,
+    #     messages=prompt, format=LessonPlan.model_json_schema(),
+    #     tools=[get_user_materials],
+    #     think=True, options=options)
+    # print(response.message.thinking)
+    # print(response.message.tool_calls)
+    # # Handle Tool Calls
+    # info = []
+    # for call in response.message.tool_calls:
+    #     func = tools.get(call.function.name)
+    #     if func:
+    #         # Try Catch
+    #         result = func(**call.function.arguments)
+    #         info.append({'role': 'tool', 'tool_name': call.function.name, 'content': str(result)})
+    #
+    # prompt += info
+    #
+    # informed_response = con.client.chat(
+    #     model,
+    #     messages=prompt, format=LessonPlan.model_json_schema(),
+    #     tools=[get_user_materials],
+    #     think=True, options=options)
+    #
+    # print(response.message.thinking)
+    #
+    # lesson_plan: LessonPlan = LessonPlan.model_validate_json(informed_response.message.content)
+
+    lesson_plan: LessonPlan = LessonPlan.model_validate_json(response.message.content)
     return lesson_plan
