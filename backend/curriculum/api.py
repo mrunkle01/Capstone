@@ -169,13 +169,11 @@ def submit_assessment(request, image: UploadedFile = File(...)):
 
     return {"score": score, "feedback": result.feedback, "report_id": result.report_id}
 
-#TODO
-#populate database with relevant information for user
-@api.get("/sectionDemo")
-def generate_section_demo(request):
-    
-    topic = "Manga"
-    section = generate_lesson_plan(topic)
+#generate dashboard data
+@api.get("/generate")
+def generate_dashboard(request, topic : str, timeCommit : str, skillLevel: str):
+
+    section = generate_lesson_plan(topic, timeCommit, skillLevel)
 
     sectionJSON = { "Section" : section.section,
                 "Lessons" : [
@@ -196,13 +194,24 @@ def generate_section_demo(request):
     return sectionJSON
 
 #TODO
-@api.get("/dashboard")
-def load_dashboard(request):
-    return 0
+#make /generate save the dashboard object that is created into the database for the current user, then
+#create a /dashboard endpoint that fetches the relevant object from the database
 
-
-#TODO
 #design get request endpoint to allow AI to grab user skill for purposes of modifying lesson plan
+@api.get("/skill")
+def get_skill(request):
+    return request.user.profile.skill_level
 
-#TODO
 #design a put request endpoint to allow the AI to update the user skill level after the  modifying lesson plan
+@api.put("/skill")
+def update_skill(request, skillLevel: str):
+    request.user.profile.skill_level = skillLevel
+    request.user.profile.save()
+
+#make an endpoint that receives topic, time commitment, skill level, anything that gets saved to profile
+@api.put("/userInfo")
+def update_user_info(request, userInfo: UpdateProfileSchema):
+    request.user.profile.time_commitment = userInfo.time_commitment
+    request.user.profile.skill_level = userInfo.skill_level
+    request.user.profile.artistic_goal = userInfo.artistic_goal
+    request.user.profile.save()
