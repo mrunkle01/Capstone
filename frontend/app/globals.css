@@ -819,7 +819,6 @@
     background: #b3933e;
 }
 
-/* ── Preview skeleton loading ── */
 .d-skeleton {
     animation: d-pulse 1.8s ease-in-out infinite;
 }
@@ -858,4 +857,4 @@
     border-radius: 10px;
 }
 
-} /* end @layer components */
+}
