@@ -14,14 +14,12 @@ class RegisterSchema(Schema):
 
 
 class UpdateProfileSchema(Schema):
-    id: int
     skill_level: str
     artistic_goal: str
     time_commitment: str
 
 
 class LearningGoalSchema(Schema):
-    id: int
     name: str
 
 
