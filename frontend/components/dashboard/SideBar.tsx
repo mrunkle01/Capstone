@@ -1,36 +1,43 @@
-"use client"
-import Link from "next/link"
-import NavLink from "@/components/dashboard/NavLink";
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 export default function Sidebar() {
+    const pathname = usePathname();
+
+    const navItems = [
+        { href: "/dashboard", label: "Dashboard" },
+        { href: "/lessons", label: "Current lesson" },
+        { href: "/chat", label: "Ask AI" },
+        { href: "/profile", label: "Profile" },
+    ];
+
     return (
-        <div className="flex flex-col min-h-screen m-2">
+        <div className="d-sidebar">
+            <div className="d-logo">Atelier.</div>
 
-            <div>Atelier</div>
-
-            {/* User Card */}
-            <div className="flex flex-row">
-                <div>M</div>
-                <div className="flex flex-col">
-                    <span>mark_draws</span>
-                    <span>Character Design · 1hr/day</span>
+            <div className="d-user-card">
+                <div className="d-avatar">M</div>
+                <div>
+                    <div className="d-user-name">mark_draws</div>
+                    <div className="d-user-goal">Character Design</div>
                 </div>
             </div>
 
-            {/* Learn */}
-            <div className="flex flex-col">
-                <p>LEARN</p>
-                <NavLink href="/dashboard" label="Dashboard" />
-                <NavLink href="/lessons" label="Current Lesson" />
-            </div>
+            <nav className="d-nav">
+                {navItems.map((item) => (
+                    <Link
+                        key={item.href}
+                        href={item.href}
+                        className={`d-nav-item ${pathname === item.href ? "active" : ""}`}
+                    >
+                        {item.label}
+                    </Link>
+                ))}
+            </nav>
 
-            {/* Tools */}
-            <div className="flex flex-col">
-                <p>TOOLS</p>
-                <NavLink href="/chat" label="Ask AI" />
-                <NavLink href="/profile" label="Profile" />
-            </div>
-
+            <div className="d-sidebar-footer">1 hr/day plan</div>
         </div>
-    )
+    );
 }
