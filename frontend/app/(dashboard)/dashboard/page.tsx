@@ -1,20 +1,46 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { SectionResponse } from "@/lib/types/dashboard";
 import { loadSections } from "@/lib/api/dashboard";
 import Greeting from "@/components/dashboard/Greeting";
 import LessonList from "@/components/dashboard/LessonList";
 
-export default async function Dashboard() {
-    let sectionInfo: SectionResponse;
-    try {
-        sectionInfo = await loadSections();
-    } catch (error) {
-        console.log(error);
+function DashboardSkeleton() {
+    return (
+        <div className="d-main d-skeleton">
+            <div className="d-skel-label-row">
+                <div className="d-skel-gold-dash" />
+                <div className="d-skel-label" />
+            </div>
+            <div className="d-skel-welcome" />
+            <div className="d-skel-section-bar" />
+        </div>
+    );
+}
+
+export default function Dashboard() {
+    const [sectionInfo, setSectionInfo] = useState<SectionResponse | null>(null);
+    const [error, setError] = useState(false);
+
+    useEffect(() => {
+        loadSections()
+            .then(setSectionInfo)
+            .catch(() => setError(true));
+    }, []);
+
+    if (error) {
         return (
-            <div className="d-main flex items-center justify-center">
-                <div className="text-[#6B6A60]">Failed to load dashboard</div>
+            <div className="d-main" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div style={{ color: "#6B6A60" }}>Failed to load dashboard</div>
             </div>
         );
     }
+
+    if (!sectionInfo) {
+        return <DashboardSkeleton />;
+    }
+
     return (
         <div className="d-main">
             <Greeting />
