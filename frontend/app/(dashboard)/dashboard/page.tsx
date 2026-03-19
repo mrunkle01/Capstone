@@ -32,7 +32,7 @@ export default function Dashboard() {
     if (error) {
         return (
             <div className="d-main" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <div style={{ color: "#6B6A60" }}>Failed to load dashboard</div>
+                <div style={{ color: "grey" }}>Failed to load dashboard</div>
             </div>
         );
     }

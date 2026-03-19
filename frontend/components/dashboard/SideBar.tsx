@@ -16,12 +16,12 @@ export default function Sidebar() {
     return (
         <div className="d-sidebar">
             <div className="d-logo">Atelier.</div>
-
+            {/*//need to actually fetch user name*/}
             <div className="d-user-card">
                 <div className="d-avatar">M</div>
                 <div>
                     <div className="d-user-name">mark_draws</div>
-                    <div className="d-user-goal">Character Design</div>
+                    <div className="d-user-goal">Manga</div>
                 </div>
             </div>
 

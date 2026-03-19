@@ -35,9 +35,9 @@ export default function LessonList({ sectionInfo }: LessonListProps) {
 
     return (
         <div>
-            {/* Section bar — click to fold/unfold */}
             <div className="d-section-bar" onClick={() => setSectionOpen(!sectionOpen)}>
                 <div className="d-section-bar-left">
+                    {/*//this will need to be grabbed when we have section numbers*/}
                     <span className="d-section-num">01</span>
                     <span className="d-current-title">{sectionInfo.Section}</span>
                     <span className="d-status-pill">
@@ -47,9 +47,7 @@ export default function LessonList({ sectionInfo }: LessonListProps) {
                 <span className={`d-chevron ${sectionOpen ? "open" : ""}`}>&#9656;</span>
             </div>
 
-            {/* Collapsible section body */}
             <div className={`d-section-body ${sectionOpen ? "open" : ""}`}>
-                {/* Lesson cards — vertical stack */}
                 <div className="d-cards-stack">
                     {lessons.map((lesson, index) => {
                         const status = getStatus(index);
@@ -117,7 +115,6 @@ export default function LessonList({ sectionInfo }: LessonListProps) {
                 </div>
             </div>
 
-            {/* Assessment — hidden until all lessons complete */}
             {completedCount >= lessons.length && (
                 <div className="d-assessment d-assessment-unlocked">
                     <div className="d-assessment-header">
