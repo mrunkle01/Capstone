@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { SectionResponse } from "@/lib/types/dashboard";
-import { loadSections } from "@/lib/api/dashboard";
+import { loadSections, UserInfo } from "@/lib/api/dashboard";
 import Greeting from "@/components/dashboard/Greeting";
 import LessonList from "@/components/dashboard/LessonList";
+
 
 function DashboardSkeleton() {
     return (
@@ -22,11 +23,15 @@ function DashboardSkeleton() {
 export default function Dashboard() {
     const [sectionInfo, setSectionInfo] = useState<SectionResponse | null>(null);
     const [error, setError] = useState(false);
-
+    const userInfo: UserInfo = {
+        topic: "realism",
+        timeCommit: "30 minutes",
+        skillLevel: "Beginner"
+    }
     useEffect(() => {
-        loadSections()
+        loadSections(userInfo)
             .then(setSectionInfo)
-            .catch(() => setError(true));
+            .catch((e) => {setError(true);console.error(e);});
     }, []);
 
     if (error) {

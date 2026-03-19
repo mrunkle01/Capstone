@@ -1,15 +1,13 @@
 import {SectionResponse} from "@/lib/types/dashboard";
-
-export async function loadSections(){
-    const url = `${process.env.NEXT_PUBLIC_API_URL}/api/sectionDemo`
-    //need to add body for the form vars
+export type UserInfo = {
+    topic: string
+    timeCommit: string
+    skillLevel: string
+}
+export async function loadSections(userInfo:UserInfo){
+    const url = `${process.env.NEXT_PUBLIC_API_URL}/api/generate?topic=${userInfo.topic}&timeCommit=${userInfo.timeCommit}%2FDay&skillLevel=${userInfo.skillLevel}`
     const response = await fetch(url, {
         method: "GET",
-        body: JSON.stringify({
-            topic: "Manga",
-            timeCommit: "1Hr/Day",
-            skillLevel: "Beginner"
-        })
     })
     if (!response.ok) {
         throw new Error("Failed to load sections");

@@ -173,8 +173,6 @@ def submit_assessment(request, image: UploadedFile = File(...)):
 @api.get("/generate")
 def generate_dashboard(request, topic : str, timeCommit : str, skillLevel: str):
 
-    section = generate_lesson_plan(topic, timeCommit, skillLevel)
-
     sectionJSON = { "Section" : section.section,
                 "Lessons" : [
                              {"title" : lesson.title,
