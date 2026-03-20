@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { SectionResponse } from "@/lib/types/dashboard";
 import { loadSections } from "@/lib/api/dashboard";
@@ -21,7 +21,7 @@ function DashboardSkeleton() {
     );
 }
 
-export default function Dashboard() {
+function DashboardContent() {
     const searchParams = useSearchParams();
     const [sectionInfo, setSectionInfo] = useState<SectionResponse | null>(null);
     const [error, setError] = useState(false);
@@ -54,5 +54,13 @@ export default function Dashboard() {
             <Greeting />
             <LessonList sectionInfo={sectionInfo} />
         </div>
+    );
+}
+
+export default function Dashboard() {
+    return (
+        <Suspense fallback={<DashboardSkeleton />}>
+            <DashboardContent />
+        </Suspense>
     );
 }
