@@ -206,5 +206,10 @@ def generate_lesson_plan(topic: str, time_commit : str, skill : str) -> LessonPl
     #
     # lesson_plan: LessonPlan = LessonPlan.model_validate_json(informed_response.message.content)
 
-    lesson_plan: LessonPlan = LessonPlan.model_validate_json(response.message.content)
+    print("Raw AI response content:", response.message.content)
+    try:
+        lesson_plan: LessonPlan = LessonPlan.model_validate_json(response.message.content)
+    except Exception as e:
+        print("Failed to parse LessonPlan:", e)
+        raise
     return lesson_plan
