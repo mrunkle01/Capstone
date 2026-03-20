@@ -35,7 +35,7 @@ export default function LoginForm() {
 
     try {
       await loginUser(username, password)
-      router.push("/dashboard")
+      router.push("/pretest")
     } catch (e) {
       console.log(e)
       setLoginErrors(true)
