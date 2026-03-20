@@ -204,7 +204,7 @@ def start_generate(request, topic: str, timeCommit: str, skillLevel: str):
     jobs[job_id] = {"status": "pending"}
     threading.Thread(target=_run_job, args=(job_id, topic, timeCommit, skillLevel,request.user)).start()
     return {"job_id": job_id}
-=======
+
 #Celery implementation of async task
 
 @api.get("/generate")
