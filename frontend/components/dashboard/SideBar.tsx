@@ -1,10 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { logoutUser } from "@/lib/api/auth";
 
 export default function Sidebar() {
     const pathname = usePathname();
+    const router = useRouter();
+
+    const handleSignOut = async () => {
+        try {
+            await logoutUser();
+        } catch (e) {
+            console.error(e);
+        }
+        router.push("/login");
+    };
 
     const navItems = [
         { href: "/dashboard", label: "Dashboard" },
@@ -37,7 +48,10 @@ export default function Sidebar() {
                 ))}
             </nav>
 
-            <div className="d-sidebar-footer">1 hr/day plan</div>
+            <div className="d-sidebar-footer">
+                <div>1 hr/day plan</div>
+                <button onClick={handleSignOut} className="d-signout-btn">Sign out</button>
+            </div>
         </div>
     );
 }
