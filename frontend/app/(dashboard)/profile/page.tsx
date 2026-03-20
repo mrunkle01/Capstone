@@ -4,7 +4,9 @@ import { loadProfileInfo } from "@/lib/api/profile"
 import {useEffect} from "react";
 export default function Profile() {
     useEffect(()=>{
-        const {user} = loadProfileInfo()
+        loadProfileInfo().then((user) => {
+            console.log("user: ", user)
+        })
     }, [])
     return (
         <div className="flex">Profile</div>
