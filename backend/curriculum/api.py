@@ -3,8 +3,8 @@ from ninja.files import UploadedFile
 from ninja.security import SessionAuth
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from celery import shared_task
-from .atelier_agent import grade_art, generate_lesson_plan
+from .tasks import generate_dashboard_task
+from .atelier_agent import grade_art
 from .models import UserProfile, ConceptLibrary, Section, Assessment, ReportCard
 from .schemas import (RegisterSchema, UpdateProfileSchema, LearningGoalSchema,
                       PretestResultSchema, PretestQuestionSchema,PretestQuestionOptionSchema,
@@ -178,23 +178,10 @@ def submit_assessment(request, image: UploadedFile = File(...)):
 
 #Celery implementation of async task
 
-@shared_task(bind=True)
-def generate_dashboard_task(self, topic, timeCommit, skillLevel):
-    section = generate_lesson_plan(topic, timeCommit, skillLevel)
-    return {
-        "Section": section.section,
-        "Lessons": [{"title": l.title, "content": l.content, "order": l.order} for l in section.lessons],
-        "Assessment": {
-            "title": section.assessment.title,
-            "content": section.assessment.content,
-            "requirements": [{"name": r.name, "points": r.points} for r in section.assessment.requirements]
-        }
-    }
-
 @api.get("/generate")
 def start_generate(request, topic: str, timeCommit: str, skillLevel: str):
     task = generate_dashboard_task.delay(topic, timeCommit, skillLevel)
-    return {"job_id": task.id}  # Celery gives you this for free
+    return {"job_id": task.id}
 
 
 @api.get("/generate/status/{job_id}")
