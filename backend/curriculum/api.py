@@ -178,7 +178,7 @@ def submit_assessment(request, image: UploadedFile = File(...)):
 # Async generate — returns job_id immediately, poll /generate/status/{job_id} for result
 # This avoids Railway's 60s proxy keep-alive timeout
 
-def _run_job(job_id, topic, timeCommit, skillLevel):
+def _run_job(job_id, topic, timeCommit, skillLevel,user):
     try:
         section = generate_lesson_plan(topic, timeCommit, skillLevel)
         jobs[job_id] = {"status": "complete", "data": {
@@ -187,6 +187,11 @@ def _run_job(job_id, topic, timeCommit, skillLevel):
             "Assessment": {"title": section.assessment.title, "content": section.assessment.content,
                            "requirements": [{"name": r.name, "points": r.points} for r in section.assessment.requirements]}
         }}
+        user.profile.time_commitment = timeCommit
+        user.profile.skill_level = skillLevel
+        user.profile.artistic_goal = topic
+        # user.profile.has_curriculum = True
+        user.profile.save()
     except Exception as e:
         print("Generate job failed:", e)
         jobs[job_id] = {"status": "error", "error": str(e)}
@@ -195,7 +200,7 @@ def _run_job(job_id, topic, timeCommit, skillLevel):
 def start_generate(request, topic: str, timeCommit: str, skillLevel: str):
     job_id = str(uuid.uuid4())
     jobs[job_id] = {"status": "pending"}
-    threading.Thread(target=_run_job, args=(job_id, topic, timeCommit, skillLevel)).start()
+    threading.Thread(target=_run_job, args=(job_id, topic, timeCommit, skillLevel,request.user)).start()
     return {"job_id": job_id}
 
 @api.get("/generate/status/{job_id}")
