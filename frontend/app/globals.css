@@ -549,6 +549,22 @@
     font-size: 11px;
     color: #6B6A60;
     padding: 8px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.d-signout-btn {
+    background: none;
+    border: none;
+    color: #6B6A60;
+    font-size: 11px;
+    cursor: pointer;
+    padding: 0;
+    text-align: left;
+    text-decoration: underline;
+}
+.d-signout-btn:hover {
+    color: #1e1c18;
 }
 
 /* Main content */

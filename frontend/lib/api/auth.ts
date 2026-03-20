@@ -11,6 +11,17 @@ export async function loginUser(username: string, password: string) {
     return response.json()
 }
 
+export async function logoutUser() {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/logout/`, {
+        method: 'POST',
+        credentials: 'include',
+    })
+    if (!response.ok) {
+        throw new Error("Logout failed")
+    }
+    return response.json()
+}
+
 export async function registerUser(email: string, username: string, password: string) {
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/register`, {
         method: 'POST',
