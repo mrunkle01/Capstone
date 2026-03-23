@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { SectionResponse } from "@/lib/types/dashboard";
 import { loadSections } from "@/lib/api/dashboard";
 import Greeting from "@/components/dashboard/Greeting";
@@ -25,8 +26,11 @@ function DashboardContent() {
     const searchParams = useSearchParams();
     const [sectionInfo, setSectionInfo] = useState<SectionResponse | null>(null);
     const [error, setError] = useState(false);
+    const [retryKey, setRetryKey] = useState(0);
 
     useEffect(() => {
+        setError(false);
+        setSectionInfo(null);
         const userInfo = {
             topic: searchParams.get("topic") ?? "Generic Drawing",
             timeCommit: searchParams.get("timeCommit") ?? "30 minutes",
@@ -35,12 +39,23 @@ function DashboardContent() {
         loadSections(userInfo)
             .then(setSectionInfo)
             .catch((e) => { setError(true); console.error(e); });
-    }, [searchParams]);
+    }, [searchParams, retryKey]);
 
     if (error) {
         return (
-            <div className="d-main" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <div style={{ color: "grey" }}>Failed to load dashboard</div>
+            <div className="d-main" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "12px" }}>
+                <div style={{ color: "grey" }}>Something went wrong loading your lesson plan.</div>
+                <div style={{ display: "flex", gap: "10px" }}>
+                    <button
+                        onClick={() => setRetryKey(k => k + 1)}
+                        style={{ padding: "8px 16px", cursor: "pointer" }}
+                    >
+                        Retry
+                    </button>
+                    <Link href="/pretest" style={{ padding: "8px 16px" }}>
+                        Back to form
+                    </Link>
+                </div>
             </div>
         );
     }
