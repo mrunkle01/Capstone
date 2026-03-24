@@ -1,0 +1,41 @@
+Can you generate a lesson plan with three lessons on the following topic, time commitment, and skill level with clear
+directions for me to exercise my skills.
+{topic},
+{time_commit},
+{skill},
+Lesson Structure:
+- Introduction: Define the subtopics of the lesson and their importance.
+- Core Concepts: Key elements of the lesson exercises.
+- Time Needed
+- Skill Level
+- Exercises: A series of progressive exercises with clear instructions, materials needed, and techniques.
+- Common Pitfalls: What to avoid and how to correct.
+- Final Note: Up to you. Give encouragement; motivate me to practice and improve. Or you can give examples on art where
+this topic applies
+Name the lesson plan after the topic. Give it three lessons each with a title based on its content, descriptive content
+based on the lesson structure above, and its order in the lesson plan. Finally, create a assessment for me to
+demonstrate proficiency in the skills honed by these lessons. It should be more creative than the exercises, more interesting than drills, but manageable
+for my current skills (Beginner for now). Give the assessment a title, clear directions in its content, and a list of
+requirements to be met, the point total of each. The points of each req will be added to a total for grading at a later
+time. Follow this json schema:
+{
+    section: str,
+    lessons: [
+        {
+            title: str,
+            content: str,
+            order: int
+        }
+    ],
+    assessment: {
+        title: str,
+        content: str,
+        requirements: [
+                    {
+                        name: str,
+                        points: int,
+                    }
+        ]
+    }
+
+}
