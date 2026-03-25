@@ -1,0 +1,10 @@
+Can you grade my performance drawing this image according to the following assignment
+{assignment}
+Follow this json schema:
+{
+    score:float,
+    feedback:str,
+    report_id:str
+}
+Score is a percentage of 0-100 represented by a float (i.e 0.5 for 50% and 1.0 for 100%
+Report id is a short string representation (i.e val_01_report)
