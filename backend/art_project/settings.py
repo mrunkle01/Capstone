@@ -177,11 +177,3 @@ AUTHENTICATION_BACKENDS = [
 
 LOGIN_REDIRECT_URL = '/' # Redirect to the homepage after login
 LOGOUT_REDIRECT_URL = '/' # Redirect to the homepage after logout
-
-
-#connects celery to redis on railway
-CELERY_BROKER_URL = os.environ.get('REDIS_URL')
-CELERY_RESULT_BACKEND = os.environ.get('REDIS_URL')
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'

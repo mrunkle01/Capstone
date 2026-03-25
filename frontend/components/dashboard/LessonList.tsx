@@ -1,19 +1,42 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SectionResponse, Lesson, Assessment, Requirement } from "@/lib/types/dashboard";
+
+const PROGRESS_KEY = "dashboard_completedCount";
+
+function getSavedProgress(): number {
+    try {
+        const val = localStorage.getItem(PROGRESS_KEY);
+        return val ? parseInt(val, 10) : 0;
+    } catch {
+        return 0;
+    }
+}
 
 interface LessonListProps {
     sectionInfo: SectionResponse;
+    expandCurrent?: boolean;
 }
 
-export default function LessonList({ sectionInfo }: LessonListProps) {
+export default function LessonList({ sectionInfo, expandCurrent = false }: LessonListProps) {
     const lessons: Lesson[] = [...sectionInfo.Lessons].sort((a, b) => a.order - b.order);
     const assessment: Assessment = sectionInfo.Assessment;
 
-    const [completedCount, setCompletedCount] = useState(0);
+    const [completedCount, setCompletedCount] = useState(() => getSavedProgress());
     const [expandedCard, setExpandedCard] = useState<number>(-1);
     const [sectionOpen, setSectionOpen] = useState(false);
+
+    useEffect(() => {
+        localStorage.setItem(PROGRESS_KEY, String(completedCount));
+    }, [completedCount]);
+
+    useEffect(() => {
+        if (expandCurrent) {
+            setSectionOpen(true);
+            setExpandedCard(completedCount < lessons.length ? completedCount : -1);
+        }
+    }, [expandCurrent]);
 
     function getStatus(index: number): "completed" | "current" | "locked" {
         if (index < completedCount) return "completed";
@@ -103,38 +126,33 @@ export default function LessonList({ sectionInfo }: LessonListProps) {
                                             Continue
                                         </button>
                                     )}
-                                    {status === "completed" && (
-                                        <button className="d-expand-btn d-btn-review">
-                                            Review lesson
-                                        </button>
-                                    )}
                                 </div>
                             </div>
                         );
                     })}
                 </div>
-            </div>
 
-            {completedCount >= lessons.length && (
-                <div className="d-assessment d-assessment-unlocked">
-                    <div className="d-assessment-header">
-                        <span className="d-section-num">Assessment</span>
-                        <span className="d-current-title">{assessment.title}</span>
-                        <span className="d-status-pill">Ready</span>
-                    </div>
-                    <div className="d-assessment-body">
-                        <p className="d-assessment-desc">{assessment.content}</p>
-                        <div className="d-assessment-reqs">
-                            {assessment.requirements.map((req: Requirement, i: number) => (
-                                <div key={i} className="d-req-tag">
-                                    {req.name} — <span className="d-req-pts">{req.points} pts</span>
-                                </div>
-                            ))}
+                {completedCount >= lessons.length && (
+                    <div className="d-assessment d-assessment-unlocked">
+                        <div className="d-assessment-header">
+                            <span className="d-section-num">Assessment</span>
+                            <span className="d-current-title">{assessment.title}</span>
+                            <span className="d-status-pill">Ready</span>
                         </div>
-                        <button className="d-btn-assessment">Begin Assessment</button>
+                        <div className="d-assessment-body">
+                            <p className="d-assessment-desc">{assessment.content}</p>
+                            <div className="d-assessment-reqs">
+                                {assessment.requirements.map((req: Requirement, i: number) => (
+                                    <div key={i} className="d-req-tag">
+                                        {req.name} — <span className="d-req-pts">{req.points} pts</span>
+                                    </div>
+                                ))}
+                            </div>
+                            <button className="d-btn-assessment">Begin Assessment</button>
+                        </div>
                     </div>
-                </div>
-            )}
+                )}
+            </div>
         </div>
     );
 }

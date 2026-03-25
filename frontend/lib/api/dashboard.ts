@@ -7,7 +7,7 @@ export type UserInfo = {
 
 const API = process.env.NEXT_PUBLIC_API_URL;
 export async function loadSections(userInfo: UserInfo): Promise<SectionResponse> {
-    const url = `${API}/api/generate?topic=${userInfo.topic}&timeCommit=${userInfo.timeCommit}%2FDay&skillLevel=${userInfo.skillLevel}`;
+    const url = `${API}/api/generate?topic=${userInfo.topic}&timeCommit=${userInfo.timeCommit}&skillLevel=${userInfo.skillLevel}`;
     const res = await fetch(url, { credentials: "include" });
     if (!res.ok) throw new Error("Failed to start generation");
 

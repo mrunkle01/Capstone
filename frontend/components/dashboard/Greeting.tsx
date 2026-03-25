@@ -1,10 +1,15 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { loadUser } from "@/lib/api/profile";
+import { User } from "@/lib/types/profile";
+
 export default function Greeting() {
-    // TODO: Hard coded user for now, later will use profile backend
-    const user = {
-        username: "Mark",
-        goal: "Manga",
-        timeCommitment: "1Hr/day",
-    };
+    const [user, setUser] = useState<User | null>(null);
+
+    useEffect(() => {
+        loadUser().then(setUser);
+    }, []);
 
     return (
         <div>
@@ -12,7 +17,7 @@ export default function Greeting() {
                 <div className="d-gold-dash" />
                 <span className="d-label-text">YOUR CURRICULUM</span>
             </div>
-            <h1 className="d-welcome">Welcome back, {user.username}.</h1>
+            <h1 className="d-welcome">Welcome back, {user?.username ?? "—"}.</h1>
         </div>
     );
 }

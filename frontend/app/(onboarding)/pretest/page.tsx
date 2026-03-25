@@ -34,6 +34,8 @@ export default function Pretest() {
             setTopicError("Please enter a topic.");
             return;
         }
+        localStorage.removeItem("dashboard_sectionInfo");
+        localStorage.removeItem("dashboard_completedCount");
         const params = new URLSearchParams({ topic: topic.trim(), timeCommit, skillLevel });
         router.push(`/dashboard?${params.toString()}`);
     };

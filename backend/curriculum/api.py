@@ -3,8 +3,7 @@ from ninja.files import UploadedFile
 from ninja.security import SessionAuth
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from .tasks import generate_dashboard_task
-from .atelier_agent import grade_art
+from .atelier_agent import grade_art, generate_lesson_plan
 from .models import UserProfile, ConceptLibrary, Section, Assessment, ReportCard
 from .schemas import (RegisterSchema, UpdateProfileSchema, LearningGoalSchema,
                       PretestResultSchema, PretestQuestionSchema,PretestQuestionOptionSchema,
@@ -83,9 +82,11 @@ def get_current_profile(request):
     """Get current user's profile"""
     return {
         "username": request.user.username,
+        "email": request.user.email,
         "skill_level": request.user.profile.skill_level,
         "artistic_goal": request.user.profile.artistic_goal,
-        "has_curriculum": request.user.profile.has_active_curriculum
+        "has_curriculum": request.user.profile.has_active_curriculum,
+        "time_commitment": request.user.profile.time_commitment
     }
 
 @api.put("/profile")
@@ -176,7 +177,6 @@ def submit_assessment(request, image: UploadedFile = File(...)):
 
     return {"score": score, "feedback": result.feedback, "report_id": result.report_id}
 
-
 # Async generate — returns job_id immediately, poll /generate/status/{job_id} for result
 # This avoids Railway's 60s proxy keep-alive timeout
 
@@ -205,75 +205,13 @@ def start_generate(request, topic: str, timeCommit: str, skillLevel: str):
     threading.Thread(target=_run_job, args=(job_id, topic, timeCommit, skillLevel,request.user)).start()
     return {"job_id": job_id}
 
-#Celery implementation of async task
-
-@api.get("/generate")
-def start_generate(request, topic: str, timeCommit: str, skillLevel: str):
-    task = generate_dashboard_task.delay(topic, timeCommit, skillLevel)
-    return {"job_id": task.id}
-
-
-
 @api.get("/generate/status/{job_id}")
 def check_generate(request, job_id: str):
-    from celery.result import AsyncResult
-    task = AsyncResult(job_id)
+    job = jobs.get(job_id)
+    if not job:
+        return api.create_response(request, {"error": "Job not found"}, status=404)
+    return job
 
-    if task.state == "PENDING":
-        return {"status": "pending"}
-    elif task.state == "SUCCESS":
-        return {"status": "complete", "data": task.result}
-    elif task.state == "FAILURE":
-        return {"status": "error", "error": str(task.result)}
-
-    return {"status": task.state}
-
-# # Async generate — returns job_id immediately, poll /generate/status/{job_id} for result
-# # This avoids Railway's 60s proxy keep-alive timeout
-#
-# def _run_job(job_id, topic, timeCommit, skillLevel):
-#     try:
-#         section = generate_lesson_plan(topic, timeCommit, skillLevel)
-#         jobs[job_id] = {"status": "complete", "data": {
-#             "Section": section.section,
-#             "Lessons": [{"title": l.title, "content": l.content, "order": l.order} for l in section.lessons],
-#             "Assessment": {"title": section.assessment.title, "content": section.assessment.content,
-#                            "requirements": [{"name": r.name, "points": r.points} for r in section.assessment.requirements]}
-#         }}
-#     except Exception as e:
-#         print("Generate job failed:", e)
-#         jobs[job_id] = {"status": "error", "error": str(e)}
-
-# @api.get("/generate")
-# def start_generate(request, topic: str, timeCommit: str, skillLevel: str):
-#     job_id = str(uuid.uuid4())
-#     jobs[job_id] = {"status": "pending"}
-#     threading.Thread(target=_run_job, args=(job_id, topic, timeCommit, skillLevel)).start()
-#     return {"job_id": job_id}
-#
-# @api.get("/generate/status/{job_id}")
-# def check_generate(request, job_id: str):
-#     job = jobs.get(job_id)
-#     if not job:
-#         return api.create_response(request, {"error": "Job not found"}, status=404)
-#     return job
-
-# Original synchronous endpoint (works locally, times out on Railway)
-# @api.get("/generate")
-# def generate_dashboard(request, topic : str, timeCommit : str, skillLevel: str):
-#     section = generate_lesson_plan(topic, timeCommit, skillLevel)
-#     request.user.profile.time_commitment = timeCommit
-#     request.user.profile.skill_level = skillLevel
-#     request.user.profile.artistic_goal = topic
-#     request.user.profile.save()
-#     sectionJSON = { "Section" : section.section,
-#                 "Lessons" : [{"title" : lesson.title, "content" : lesson.content,
-#                               "order" : lesson.order} for lesson in section.lessons],
-#                "Assessment" : {"title" : section.assessment.title, "content" : section.assessment.content,
-#                                "requirements" : [{"name" : requirement.name, "points" : requirement.points}
-#                                                  for requirement in section.assessment.requirements]}
-#                }
-#     return sectionJSON
 
 #TODO
 #make /generate save the dashboard object that is created into the database for the current user, then

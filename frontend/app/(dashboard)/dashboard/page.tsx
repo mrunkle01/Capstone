@@ -7,19 +7,21 @@ import { SectionResponse } from "@/lib/types/dashboard";
 import { loadSections } from "@/lib/api/dashboard";
 import Greeting from "@/components/dashboard/Greeting";
 import LessonList from "@/components/dashboard/LessonList";
+import DashboardSkeleton from "./loading";
 
+const CACHE_KEY = "dashboard_sectionInfo";
 
-function DashboardSkeleton() {
-    return (
-        <div className="d-main d-skeleton">
-            <div className="d-skel-label-row">
-                <div className="d-skel-gold-dash" />
-                <div className="d-skel-label" />
-            </div>
-            <div className="d-skel-welcome" />
-            <div className="d-skel-section-bar" />
-        </div>
-    );
+function getCachedSection(): SectionResponse | null {
+    try {
+        const raw = localStorage.getItem(CACHE_KEY);
+        return raw ? JSON.parse(raw) : null;
+    } catch {
+        return null;
+    }
+}
+
+function cacheSection(data: SectionResponse) {
+    localStorage.setItem(CACHE_KEY, JSON.stringify(data));
 }
 
 function DashboardContent() {
@@ -27,8 +29,15 @@ function DashboardContent() {
     const [sectionInfo, setSectionInfo] = useState<SectionResponse | null>(null);
     const [error, setError] = useState(false);
     const [retryKey, setRetryKey] = useState(0);
+    const expandLesson = searchParams.get("expandLesson");
 
     useEffect(() => {
+        const cached = getCachedSection();
+        if (cached) {
+            setSectionInfo(cached);
+            return;
+        }
+
         setError(false);
         setSectionInfo(null);
         const userInfo = {
@@ -37,7 +46,10 @@ function DashboardContent() {
             skillLevel: searchParams.get("skillLevel") ?? "Beginner",
         };
         loadSections(userInfo)
-            .then(setSectionInfo)
+            .then((data) => {
+                cacheSection(data);
+                setSectionInfo(data);
+            })
             .catch((e) => { setError(true); console.error(e); });
     }, [searchParams, retryKey]);
 
@@ -67,7 +79,12 @@ function DashboardContent() {
     return (
         <div className="d-main">
             <Greeting />
-            <LessonList sectionInfo={sectionInfo} />
+            <LessonList sectionInfo={sectionInfo} expandCurrent={expandLesson === "current"} />
+            <div style={{ marginTop: "24px", textAlign: "center" }}>
+                <Link href="/pretest" className="d-btn-demo-pretest">
+                    Try a different plan
+                </Link>
+            </div>
         </div>
     );
 }
