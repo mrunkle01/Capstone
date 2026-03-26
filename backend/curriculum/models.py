@@ -286,6 +286,17 @@ class ChatLog(models.Model):
     def __str__(self):
         return f"ChatLog - {self.user} - {self.action}"
 
+class DashBoard(models.Model):
+    user = models.ForeignKey(
+        UserProfile,
+        on_delete=models.CASCADE,
+    )
+
+    contents = models.JSONField(default=dict)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    def __str__(self):
+        return f"DashBoard - {self.user}"
 
 # Placeholder models for future use
 class Drawings(models.Model):
