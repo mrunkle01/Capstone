@@ -5,7 +5,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from .tasks import generate_dashboard_task
 from .atelier_agent import grade_art
-from .models import UserProfile, ConceptLibrary, Section, Assessment, ReportCard
+from .models import UserProfile, ConceptLibrary, Section, Assessment, ReportCard, DashBoard
 from .schemas import (RegisterSchema, UpdateProfileSchema, LearningGoalSchema,
                       PretestResultSchema, PretestQuestionSchema,PretestQuestionOptionSchema,
                       SectionSchema, LessonSchema, UserLessonSchema, AssessmentSchema,
@@ -210,6 +210,8 @@ def submit_assessment(request, image: UploadedFile = File(...)):
 @api.get("/generate")
 def start_generate(request, topic: str, timeCommit: str, skillLevel: str):
     task = generate_dashboard_task.delay(topic, timeCommit, skillLevel)
+    DashBoard.contents = task
+    DashBoard.save()
     return {"job_id": task.id}
 
 
@@ -227,6 +229,36 @@ def check_generate(request, job_id: str):
         return {"status": "error", "error": str(task.result)}
 
     return {"status": task.state}
+
+#TODO
+#make /generate save the dashboard object that is created into the database for the current user, then
+#create a /dashboard endpoint that fetches the relevant object from the database
+@api.get("/dashboard")
+def dashboard(request):
+    if DashBoard.contents is None:
+        return {"message": "No contents"}, 404
+    return DashBoard.contents
+
+#design get request endpoint to allow AI to grab user skill for purposes of modifying lesson plan
+@api.get("/skill")
+def get_skill(request):
+    return request.user.profile.skill_level
+
+#design a put request endpoint to allow the AI to update the user skill level after the  modifying lesson plan
+@api.put("/skill")
+def update_skill(request, skillLevel: str):
+    request.user.profile.skill_level = skillLevel
+    request.user.profile.save()
+
+#make an endpoint that receives topic, time commitment, skill level, anything that gets saved to profile
+@api.put("/userInfo")
+def update_user_info(request, userInfo: UpdateProfileSchema):
+    request.user.profile.time_commitment = userInfo.time_commitment
+    request.user.profile.skill_level = userInfo.skill_level
+    request.user.profile.artistic_goal = userInfo.artistic_goal
+    request.user.profile.save()
+
+
 
 # # Async generate — returns job_id immediately, poll /generate/status/{job_id} for result
 # # This avoids Railway's 60s proxy keep-alive timeout
@@ -257,27 +289,3 @@ def check_generate(request, job_id: str):
 #     if not job:
 #         return api.create_response(request, {"error": "Job not found"}, status=404)
 #     return job
-
-
-#TODO
-#make /generate save the dashboard object that is created into the database for the current user, then
-#create a /dashboard endpoint that fetches the relevant object from the database
-
-#design get request endpoint to allow AI to grab user skill for purposes of modifying lesson plan
-@api.get("/skill")
-def get_skill(request):
-    return request.user.profile.skill_level
-
-#design a put request endpoint to allow the AI to update the user skill level after the  modifying lesson plan
-@api.put("/skill")
-def update_skill(request, skillLevel: str):
-    request.user.profile.skill_level = skillLevel
-    request.user.profile.save()
-
-#make an endpoint that receives topic, time commitment, skill level, anything that gets saved to profile
-@api.put("/userInfo")
-def update_user_info(request, userInfo: UpdateProfileSchema):
-    request.user.profile.time_commitment = userInfo.time_commitment
-    request.user.profile.skill_level = userInfo.skill_level
-    request.user.profile.artistic_goal = userInfo.artistic_goal
-    request.user.profile.save()
