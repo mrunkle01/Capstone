@@ -3,7 +3,7 @@ from ninja.files import UploadedFile
 from ninja.security import SessionAuth
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from .tasks import generate_dashboard_task
+from .tasks import generate_dashboard_task, grade_user_art
 from .atelier_agent import grade_art
 from .models import UserProfile, ConceptLibrary, Section, Assessment, ReportCard, DashBoard
 from .schemas import (RegisterSchema, UpdateProfileSchema, LearningGoalSchema,
@@ -163,22 +163,25 @@ def get_concept_details(request, concept_name: str):
 #
 #     return {"score": score, "feedback": result.feedback, "report_id": report.id}
 
-@api.post("/imageTest")
-def submit_assessment(request, image: UploadedFile = File(...)):
+@api.post("/gradeImage")
+def submit_assessment(request, assignment : str, image: UploadedFile = File(...)):
     image_data = image.read()
+    task = grade_user_art(assignment, image_data)
+    request.session["task"] = task.id
+    return {"job_id" : task.id}
 
-    assignment = "Draw a basic sketch demonstrating line, shape, and shading."
+@api.post("/gradeImage/status/{job_id}")
+def check_submit_assessment(request, job_id: str):
+    from celery.result import AsyncResult
+    task = AsyncResult(job_id)
 
-
-    result = grade_art(assignment, image_data)
-
-
-    score = int(result.score * 100)
-
-    return {"score": score, "feedback": result.feedback, "report_id": result.report_id}
-
-
-
+    if task.state == "PENDING":
+        return {"status" : "pending"}
+    elif task.state == "SUCCESS":
+        return {"status" : "complete", "data" : task.result}
+    elif task.state == "FAILURE":
+        return {"status": "error", "error": str(task.result)}
+    return {"status": task.state}
 
 @api.get("/generate")
 def start_generate(request, topic: str, timeCommit: str, skillLevel: str):
