@@ -1,12 +1,10 @@
 
 const API = process.env.NEXT_PUBLIC_API_URL;
-export async function loadProfileInfo() {
+export async function loadUser() {
     const url = `${API}/api/profile`;
     const response = await fetch (url, { credentials: "include" });
     if (!response.ok) {
-        return new Error(response.statusText);
+        return null;
     }
-    const user = await response.json()
-    console.log("user: ", user)
-    return user
+    return await response.json()
 }

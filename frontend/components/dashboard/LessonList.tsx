@@ -1,19 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SectionResponse, Lesson, Assessment, Requirement } from "@/lib/types/dashboard";
 
 interface LessonListProps {
     sectionInfo: SectionResponse;
+    expandCurrent?: boolean;
 }
 
-export default function LessonList({ sectionInfo }: LessonListProps) {
+export default function LessonList({ sectionInfo, expandCurrent = false }: LessonListProps) {
     const lessons: Lesson[] = [...sectionInfo.Lessons].sort((a, b) => a.order - b.order);
     const assessment: Assessment = sectionInfo.Assessment;
 
     const [completedCount, setCompletedCount] = useState(0);
     const [expandedCard, setExpandedCard] = useState<number>(-1);
     const [sectionOpen, setSectionOpen] = useState(false);
+
+    useEffect(() => {
+        if (expandCurrent) {
+            setSectionOpen(true);
+            setExpandedCard(completedCount < lessons.length ? completedCount : -1);
+        }
+    }, [expandCurrent]);
 
     function getStatus(index: number): "completed" | "current" | "locked" {
         if (index < completedCount) return "completed";
@@ -79,11 +87,11 @@ export default function LessonList({ sectionInfo }: LessonListProps) {
                                         {status === "current" && (
                                             <span className="d-pill-current">Current</span>
                                         )}
+
                                         {status === "locked" && (
                                             <svg width="12" height="14" viewBox="0 0 12 14" fill="none">
                                                 <rect x="1" y="6" width="10" height="7" rx="2" stroke="#9B9889" strokeWidth="1.2" />
-                                                <path d="M3.5 6V4a2.5 2.5 0 015 0v2" stroke="#9B9889" strokeWidth="1.2" strokeLinecap="round" />
-                                            </svg>
+                                                <path d="M3.5 6V4a2.5 2.5 0 015 0v2" stroke="#9B9889" strokeWidth="1.2" strokeLinecap="round" /></svg>
                                         )}
                                         {status !== "locked" && (
                                             <span className={`d-chevron ${isExpanded ? "open" : ""}`}>
@@ -103,38 +111,33 @@ export default function LessonList({ sectionInfo }: LessonListProps) {
                                             Continue
                                         </button>
                                     )}
-                                    {status === "completed" && (
-                                        <button className="d-expand-btn d-btn-review">
-                                            Review lesson
-                                        </button>
-                                    )}
                                 </div>
                             </div>
                         );
                     })}
                 </div>
-            </div>
 
-            {completedCount >= lessons.length && (
-                <div className="d-assessment d-assessment-unlocked">
-                    <div className="d-assessment-header">
-                        <span className="d-section-num">Assessment</span>
-                        <span className="d-current-title">{assessment.title}</span>
-                        <span className="d-status-pill">Ready</span>
-                    </div>
-                    <div className="d-assessment-body">
-                        <p className="d-assessment-desc">{assessment.content}</p>
-                        <div className="d-assessment-reqs">
-                            {assessment.requirements.map((req: Requirement, i: number) => (
-                                <div key={i} className="d-req-tag">
-                                    {req.name} — <span className="d-req-pts">{req.points} pts</span>
-                                </div>
-                            ))}
+                {completedCount >= lessons.length && (
+                    <div className="d-assessment d-assessment-unlocked">
+                        <div className="d-assessment-header">
+                            <span className="d-section-num">Assessment</span>
+                            <span className="d-current-title">{assessment.title}</span>
+                            <span className="d-status-pill">Ready</span>
                         </div>
-                        <button className="d-btn-assessment">Begin Assessment</button>
+                        <div className="d-assessment-body">
+                            <p className="d-assessment-desc">{assessment.content}</p>
+                            <div className="d-assessment-reqs">
+                                {assessment.requirements.map((req: Requirement, i: number) => (
+                                    <div key={i} className="d-req-tag">
+                                        {req.name} — <span className="d-req-pts">{req.points} pts</span>
+                                    </div>
+                                ))}
+                            </div>
+                            <button className="d-btn-assessment">Begin Assessment</button>
+                        </div>
                     </div>
-                </div>
-            )}
+                )}
+            </div>
         </div>
     );
 }

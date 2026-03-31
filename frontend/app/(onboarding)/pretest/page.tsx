@@ -4,6 +4,7 @@ import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Playfair_Display, DM_Sans } from "next/font/google";
+import { updateUserInfo } from "@/lib/api/dashboard";
 import "../../(auth)/auth.css";
 
 // import QuestionList from "@/components/onboarding/QuestionList";
@@ -28,12 +29,14 @@ export default function Pretest() {
     const [skillLevel, setSkillLevel] = useState("Beginner");
     const [topicError, setTopicError] = useState("");
 
-    const handleSubmit = (e: FormEvent) => {
+    const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
         if (!topic.trim()) {
             setTopicError("Please enter a topic.");
             return;
         }
+        // Save preferences to the backend profile
+        await updateUserInfo({ topic: topic.trim(), timeCommit, skillLevel });
         const params = new URLSearchParams({ topic: topic.trim(), timeCommit, skillLevel });
         router.push(`/dashboard?${params.toString()}`);
     };
