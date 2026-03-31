@@ -3,17 +3,6 @@
 import { useState, useEffect } from "react";
 import { SectionResponse, Lesson, Assessment, Requirement } from "@/lib/types/dashboard";
 
-const PROGRESS_KEY = "dashboard_completedCount";
-
-function getSavedProgress(): number {
-    try {
-        const val = localStorage.getItem(PROGRESS_KEY);
-        return val ? parseInt(val, 10) : 0;
-    } catch {
-        return 0;
-    }
-}
-
 interface LessonListProps {
     sectionInfo: SectionResponse;
     expandCurrent?: boolean;
@@ -23,13 +12,9 @@ export default function LessonList({ sectionInfo, expandCurrent = false }: Lesso
     const lessons: Lesson[] = [...sectionInfo.Lessons].sort((a, b) => a.order - b.order);
     const assessment: Assessment = sectionInfo.Assessment;
 
-    const [completedCount, setCompletedCount] = useState(() => getSavedProgress());
+    const [completedCount, setCompletedCount] = useState(0);
     const [expandedCard, setExpandedCard] = useState<number>(-1);
     const [sectionOpen, setSectionOpen] = useState(false);
-
-    useEffect(() => {
-        localStorage.setItem(PROGRESS_KEY, String(completedCount));
-    }, [completedCount]);
 
     useEffect(() => {
         if (expandCurrent) {
@@ -102,11 +87,11 @@ export default function LessonList({ sectionInfo, expandCurrent = false }: Lesso
                                         {status === "current" && (
                                             <span className="d-pill-current">Current</span>
                                         )}
+
                                         {status === "locked" && (
                                             <svg width="12" height="14" viewBox="0 0 12 14" fill="none">
                                                 <rect x="1" y="6" width="10" height="7" rx="2" stroke="#9B9889" strokeWidth="1.2" />
-                                                <path d="M3.5 6V4a2.5 2.5 0 015 0v2" stroke="#9B9889" strokeWidth="1.2" strokeLinecap="round" />
-                                            </svg>
+                                                <path d="M3.5 6V4a2.5 2.5 0 015 0v2" stroke="#9B9889" strokeWidth="1.2" strokeLinecap="round" /></svg>
                                         )}
                                         {status !== "locked" && (
                                             <span className={`d-chevron ${isExpanded ? "open" : ""}`}>

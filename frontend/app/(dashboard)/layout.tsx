@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Playfair_Display } from "next/font/google";
 import Sidebar from "@/components/dashboard/SideBar";
 
@@ -14,7 +15,9 @@ type Props = {
 export default function DashboardLayout({children}: Props) {
     return (
         <div className={`flex min-h-screen ${playfair.variable}`}>
-            <Sidebar/>
+            <Suspense>
+                <Sidebar/>
+            </Suspense>
             <div className="flex-1">
                 {children}
             </div>
