@@ -3,80 +3,25 @@ import os
 from pydantic_core import ValidationError
 from dotenv import load_dotenv
 from pydantic import BaseModel
-from ollama import Client, WebSearchResponse, WebFetchResponse
-
-# Atelier Agent Properties
-
-personality = [
-        {'role': 'system', 'content': """You are a critical but supportive assistant in personal growth and 
-            self-teaching. Don't be a sycophant, give useful criticism. Encourage improvement by explaining weaknesses 
-            and how to approach them. The domain of learning for now is art. So, be prepared to analyze art in great 
-            detail. When assigning work for the user, make sure it doesn't require materials they don't have. You can 
-            use the tool function get_user_materials() to do so. You should also use the tool function search_web to 
-            supplement your knowledge and provide better assistance.
-        """},
-    ]
-
-options = {
-    'temperature': 0.8
-}
+from ollama import Client, WebSearchResponse, WebFetchResponse, ChatResponse
 
 
-# Atelier Agent Methods
-def get_personality():
-    temp = []
-    for value in personality:
-        temp.append(value)
-    return temp
-
-
-def chat(prompt):
-    pass
-    # Get user info and retrieve memory
-
-    # Web search
-
-    # # Handle Tool Calls
-    # info = []
-    # for call in response.message.tool_calls:
-    #     func = tools.get(call.function.name)
-    #     if func:
-    #         # Try Catch
-    #         result = func(**call.function.arguments)
-    #         info.append({'role': 'tool', 'tool_name': call.function.name, 'content': str(result)})
-    #
-    # prompt += info
-    #
-    # informed_response = con.client.chat(
-    #     model,
-    #     messages=prompt, format=LessonPlan.model_json_schema(),
-    #     tools=[get_user_materials],
-    #     think=True, options=options)
-
-    # Do error checking and retry
-
-class AtelierConnection():
-    client: Client
-
-    def __init__(self):
-        load_dotenv()
-        self.client = Client(
-            host="https://ollama.com",
-            headers={'Authorization': 'Bearer ' + os.environ.get('OLLAMA_API_KEY')}
-        )
-
-    def fetch_user_info(self, url) -> WebFetchResponse:
-        return self.client.web_fetch(url)
+class LessonContent(BaseModel):
+    time: int
+    skill: str  # Enum maybe?
+    directions: str
+    exercises: list[str]  # Exercise their own object maybe
 
 
 class Lesson(BaseModel):
     title: str
-    content: str
+    content: LessonContent
     order: int
 
 
 class Requirement(BaseModel):
     name: str
+    r_id: str
     points: int
 
     def to_string(self) -> str:
@@ -95,85 +40,123 @@ class Assessment(BaseModel):
         return self.title + "/n" + self.content + req_string
 
 
+class Resource(BaseModel):
+    title: str
+    url: str
+    source: str
+
+
 class LessonPlan(BaseModel):
     section: str
     lessons: list[Lesson]
     assessment: Assessment
+    resources: list[Resource]
 
 
 class Grade(BaseModel):
     score: float
+    requirements: list[Requirement]
     feedback: str
     report_id: str
 
 
-def get_user_materials() -> str:
-    # Replace with call to api later
-    return "Pencil and paper"
+class AtelierClient:
+    def __new__(cls):
+        if not hasattr(cls, '__inst'):
+            cls.inst = super(AtelierClient, cls).__new__(cls)
+        return cls.inst
 
+    def __init__(self):
+        # Create client
+        load_dotenv()
+        self.__client = Client(
+            host="https://ollama.com",
+            headers={'Authorization': 'Bearer ' + os.environ.get('OLLAMA_API_KEY')}
+        )
+        # Establish AI properties
+        self.__available_tools = {'web_search': self.__client.web_search}
+        self.__tools = [self.__client.web_search]
+        with open('personality.txt', 'r') as file:
+            pers_data = file.read()
+        print(pers_data)
+        self.__personality = {'role': 'system', 'content': pers_data}
+        self.__messages = []
+        self.__messages.append(self.__personality)
+        self.__options = {
+            'temperature': 0.8
+        }
 
-tools = {
-    "get_user_materials": get_user_materials,
-}
+    def __generate(self, model: str, instr, form) -> ChatResponse:
+        self.__messages.append(instr)
 
+        print("Initial Response\n")
+        res = self.__client.chat(model=model, messages=self.__messages, tools=self.__tools,
+                                 think=True, options=self.__options)
 
-def grade_art(assignment: str, img: bytes) -> Grade:
-    con = AtelierConnection()
-    model = 'qwen3-vl:235b-cloud'
+        if res.message.tool_calls:
+            print("Tool Calls: ", res.message.tool_calls)
+            for tool_call in res.message.tool_calls:
+                func = self.__available_tools.get(tool_call.function.name)
+                if func:
+                    args = tool_call.function.arguments
+                    result = func(**args)
+                    print('Result: ', str(result)[:200]+'...')
+                    self.__messages.append({'role': 'tool', 'content': str(result)[:2000 * 4],
+                                            'tool_name': tool_call.function.name})
 
-    img_final = base64.b64encode(img).decode()
+        print("Informed Response\n")
 
-    with open('art_grading_instructions', 'r') as file:
-        file_data = file.read()
+        informed_res = self.__client.chat(model=model, messages=self.__messages, format=form,
+                                          think=True, options=self.__options)
+        print(informed_res.message.thinking)
+        print(informed_res.message.content)
+        return informed_res
 
-    file_data = file_data.replace('{assignment}', assignment)
+    def __fetch_user_info(self, url) -> WebFetchResponse:
+        return self.__client.web_fetch(url)
 
-    print(file_data)
+    def grade_art(self, assignment: str, img: bytes) -> Grade:
+        # model = 'qwen3-vl:235b-cloud'
+        model = 'qwen3.5:397b-cloud'
 
-    instructions = {'role': 'user', 'content': file_data, 'images': [img_final]}
+        img_final = base64.b64encode(img).decode()
 
-    prompt = get_personality()
-    prompt.append(instructions)
+        with open('art_grading_instructions', 'r') as file:
+            file_data = file.read()
 
-    # Move chat logic to agent and inject prompt and format
-    response = con.client.chat(model, messages=prompt, format=Grade.model_json_schema(), think=True, options=options)
-    print(response.message.thinking)
-    grade: Grade = Grade.model_validate_json(response.message.content)
-    return grade
+        file_data = file_data.replace('{assignment}', assignment)
 
+        print(file_data)
 
-def generate_lesson_plan(topic: str, time_commit : str, skill : str) -> LessonPlan:
-    con = AtelierConnection()
+        instructions = {'role': 'user', 'content': file_data, 'images': [img_final]}
 
-    model = 'qwen3-vl:235b-cloud'
+        response = self.__generate(model, instructions, Grade.model_json_schema())
 
-    with open('lesson_plan_instructions', 'r') as file:
-        file_data = file.read()
+        grade: Grade = Grade.model_validate_json(response.message.content)
 
-    file_data = file_data.replace('{topic}', topic)
-    file_data = file_data.replace('{time_commit}', time_commit)
-    file_data = file_data.replace('{skill}', skill)
+        return grade
 
-    print(file_data)
+    def generate_lesson_plan(self, topic: str, time_commit: str, skill: str, amount: int = 5) -> LessonPlan:
+        model = 'qwen3.5:397b-cloud'
 
-    instructions = {'role': 'user', 'content': file_data}
+        with open('lesson_plan_instructions', 'r') as file:
+            file_data = file.read()
 
-    prompt = get_personality()
-    prompt.append(instructions)
+        file_data = file_data.replace('{topic}', topic)
+        file_data = file_data.replace('{time_commit}', time_commit)
+        file_data = file_data.replace('{skill}', skill)
+        file_data = file_data.replace('{amount}', str(amount))
 
-    response = con.client.chat(
-        model,
-        messages=prompt, format=LessonPlan.model_json_schema(),
-        think=True, options=options)
-    print(response.message.thinking)
+        print(file_data)
 
-    lesson_plan: LessonPlan = None
+        instructions = {'role': 'user', 'content': file_data}
 
-    try:
+        response = self.__generate(model, instructions, LessonPlan.model_json_schema())
+
         lesson_plan: LessonPlan = LessonPlan.model_validate_json(response.message.content)
-    except ValidationError:
-        print("Invalid JSON")
-    except:
-        print("Unknown Exception")
 
-    return lesson_plan
+        # Verify lesson time and assessment points
+
+        return lesson_plan
+
+
