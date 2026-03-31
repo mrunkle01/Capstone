@@ -4,7 +4,6 @@ from ninja.security import SessionAuth
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from .tasks import generate_dashboard_task, grade_user_art
-from .atelier_agent import grade_art
 from .models import UserProfile, ConceptLibrary, Section, Assessment, ReportCard, DashBoard
 from .schemas import (RegisterSchema, UpdateProfileSchema, LearningGoalSchema,
                       PretestResultSchema, PretestQuestionSchema,PretestQuestionOptionSchema,
