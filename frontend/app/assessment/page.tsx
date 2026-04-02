@@ -13,7 +13,7 @@ export default function AssessmentPage() {
     const [imageUrl, setImageUrl] = useState<string | null>(null);
     const submitRef = useRef<(() => void) | null>(null);
 
-    // TODO: remove mock data — only here so the page renders without backend
+    // TODO: remove mock data only here so the page renders without backend
     const MOCK_ASSESSMENT: Assessment = {
         title: "Textured Still Life Synthesis",
         content: "Create a 45-minute drawing of three objects with distinct materials (e.g., a glass bottle, a folded linen cloth, and a terracotta pot) arranged in natural light. No reference photos — observe real objects. Focus on integrating all skills from Lessons 1–3.",
@@ -25,7 +25,7 @@ export default function AssessmentPage() {
             { name: "Time management — completed within 45 minutes", r_id: "r5", points: 5 },
         ],
     };
-
+//TODO End of mock block
     useEffect(() => {
         const state = window.history.state;
         if (state?.assessment) {
