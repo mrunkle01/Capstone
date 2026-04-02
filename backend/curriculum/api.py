@@ -165,7 +165,7 @@ def get_concept_details(request, concept_name: str):
 @api.post("/gradeImage")
 def submit_assessment(request, assignment : str, image: UploadedFile = File(...)):
     image_data = image.read()
-    task = grade_user_art(assignment, image_data)
+    task = grade_user_art.delay(assignment, image_data)
     request.session["task"] = task.id
     return {"job_id" : task.id}
 
