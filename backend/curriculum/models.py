@@ -18,10 +18,12 @@ class UserProfile(models.Model):
         related_name='profile'
     )
     skill_level = models.CharField(
-        max_length=20,
+        max_length=50,
         choices=[
             ('beginner', 'Beginner'),
+            ('beginner-intermediate', 'Beginner-Intermediate'),
             ('intermediate', 'Intermediate'),
+            ('intermediate-advanced', 'Intermediate-Advanced'),
             ('advanced', 'Advanced')
         ],
         default='beginner',

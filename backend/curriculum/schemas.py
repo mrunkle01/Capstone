@@ -77,3 +77,13 @@ class ChatLogSchema(Schema):
     action: str
     change_made: str
     created_at: str
+
+
+class LogResultsSchema(Schema):
+    linework : float
+    form : float
+    perspective : float
+    anatomy: float
+    shading: float
+    composition: float
+    value: float
