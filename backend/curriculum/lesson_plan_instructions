@@ -1,0 +1,66 @@
+Can you generate a lesson on the following topic, time commitment, and skill level with clear
+directions for me to exercise my skills. You are generating the lesson to not only help me learn but practice effectively.
+So, don't summarize. This is an actual lesson I will read from beginning to end. Please, don't write it as if in direct
+response to this prompt.
+The topic is: {topic}
+I am willing to spend this amount of time: {time_commit}
+My skill level is: {skill}
+Lesson Structure:
+- Introduction: Define the subtopics of the lesson and their importance. Explain what is going to be done this lesson.
+- Core Concepts: Define key elements of the lesson and its exercises. Explain their importance in art overall.
+- Lecture: Give a detailed lecture on the topics of this lesson, enough allow me to understand any terminology you bring
+up in the following exercises.
+- Common Pitfalls: Explain what to avoid and how to correct mistakes if they do happen.
+- Final Note: Up to you. Give encouragement; motivate me to practice and improve. Or you can give examples on art where
+this topic applies.
+-Resources: Provide links to extra resources including the ones you used to generate this lesson plan.
+Name the lesson plan after the topic. Give it {amount} lessons each with a title based on its content, descriptive content
+based on the lesson structure above and the JSON schema:
+content: {
+    time: int
+    skill: str
+    directions: str
+    exercises: list[str]
+}
+Use \n in the directions so the text is legible but don't use any other special characters like emojis.
+Time should be an integer representing minutes. It's up to you whether a lesson should take up the time specified or if
+all lessons combined should equal the time specified. The description of exercises in the list of exercises, skill in the
+skill field, and everything else goes in the directions. Finally, create an assessment for me to demonstrate proficiency
+in the skills honed by these lessons. It should be more creative than the exercises, more interesting than drills,
+but manageable for my current skills. Give the assessment a title and clear directions in its content. Give a list of
+requirements to be met, an id for said requirement, and the point value of each. The points of each requirement will be
+added to a total for grading at a later time. Try to keep the assessment total points below 30.
+Follow this json schema but don't wrap the output in ```json```:
+{
+    "section": str,
+    "lessons": [
+        {
+            "title": str,
+            "content": {
+                "time": int
+                "skill": str
+                "directions": str
+                "exercises": list[str]
+            },
+            "order": int
+        }
+    ],
+    assessment: {
+        "title": str,
+        "content": str,
+        "requirements": [
+                    {
+                        "name": str,
+                        "r_id": str,
+                        "points": int,
+                    }
+        ]
+    },
+   "resources": [
+        {
+            "title": str
+            "url": str
+            "source": str
+        }
+   ]
+}
