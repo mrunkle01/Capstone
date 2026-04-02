@@ -5,6 +5,10 @@ from dotenv import load_dotenv
 from pydantic import BaseModel
 from ollama import Client, WebSearchResponse, WebFetchResponse, ChatResponse
 
+script_dir = os.path.dirname(os.path.abspath(__file__))
+personality_path = os.path.join(script_dir, "personality.txt")
+lesson_plan_path = os.path.join(script_dir, "lesson_plan_instructions.txt")
+art_grading_path = os.path.join(script_dir, "art_grading_instructions.txt")
 
 class LessonContent(BaseModel):
     time: int
@@ -76,7 +80,7 @@ class AtelierClient:
         # Establish AI properties
         self.__available_tools = {'web_search': self.__client.web_search}
         self.__tools = [self.__client.web_search]
-        with open('personality.txt', 'r') as file:
+        with open(personality_path, 'r') as file:
             pers_data = file.read()
         print(pers_data)
         self.__personality = {'role': 'system', 'content': pers_data}
@@ -121,7 +125,7 @@ class AtelierClient:
 
         img_final = base64.b64encode(img).decode()
 
-        with open('art_grading_instructions', 'r') as file:
+        with open(art_grading_path, 'r') as file:
             file_data = file.read()
 
         file_data = file_data.replace('{assignment}', assignment)
@@ -139,7 +143,7 @@ class AtelierClient:
     def generate_lesson_plan(self, topic: str, time_commit: str, skill: str, amount: int = 5) -> LessonPlan:
         model = 'qwen3.5:397b-cloud'
 
-        with open('lesson_plan_instructions', 'r') as file:
+        with open(lesson_plan_path, 'r') as file:
             file_data = file.read()
 
         file_data = file_data.replace('{topic}', topic)
