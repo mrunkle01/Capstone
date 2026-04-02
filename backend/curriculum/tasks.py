@@ -1,13 +1,11 @@
 from celery import shared_task
-from .atelier_agent import AtelierClient
-
-client = AtelierClient()
+from .atelier_agent import generate_lesson_plan, grade_art
 
 @shared_task(bind=True)
 def grade_user_art(self, assignment : str, img : bytes):
 
 
-    gradeJSON = client.grade_art(assignment, img)
+    gradeJSON = grade_art(assignment, img)
 
     score = int(gradeJSON.score * 100)
 
@@ -16,7 +14,7 @@ def grade_user_art(self, assignment : str, img : bytes):
 
 @shared_task(bind=True)
 def generate_dashboard_task(self, topic, timeCommit, skillLevel, amount):
-    sectionJSON = client.generate_lesson_plan(topic, timeCommit, skillLevel, amount)
+    sectionJSON = generate_lesson_plan(topic, timeCommit, skillLevel, amount)
     return {
         "Section": sectionJSON.section,
         "Lessons": [{"title": l.title, "content": {"time" : l.content.title,

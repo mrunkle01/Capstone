@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { SectionResponse, Lesson, Assessment, Resource } from "@/lib/types/dashboard";
+import { SectionResponse, Lesson, Assessment, Requirement } from "@/lib/types/dashboard";
 
 interface LessonListProps {
     sectionInfo: SectionResponse;
@@ -10,7 +9,6 @@ interface LessonListProps {
 }
 
 export default function LessonList({ sectionInfo, expandCurrent = false }: LessonListProps) {
-    const router = useRouter();
     const lessons: Lesson[] = [...sectionInfo.Lessons].sort((a, b) => a.order - b.order);
     const assessment: Assessment = sectionInfo.Assessment;
 
@@ -104,23 +102,7 @@ export default function LessonList({ sectionInfo, expandCurrent = false }: Lesso
                                 </div>
 
                                 <div className={`d-card-expand ${isExpanded ? "open" : ""}`}>
-                                    <div className="d-expand-body">
-                                        <div className="d-lesson-meta">
-                                            <span className="d-meta-tag">{lesson.content.time} min</span>
-                                            <span className="d-meta-tag">{lesson.content.skill}</span>
-                                        </div>
-                                        <p className="d-lesson-directions">{lesson.content.directions}</p>
-                                        {lesson.content.exercises.length > 0 && (
-                                            <div className="d-lesson-exercises">
-                                                <span className="d-exercises-label">Exercises</span>
-                                                <ul className="d-exercises-list">
-                                                    {lesson.content.exercises.map((ex, i) => (
-                                                        <li key={i}>{ex}</li>
-                                                    ))}
-                                                </ul>
-                                            </div>
-                                        )}
-                                    </div>
+                                    <div className="d-expand-body">{lesson.content}</div>
                                     {status === "current" && (
                                         <button
                                             className="d-expand-btn d-btn-continue"
@@ -143,26 +125,15 @@ export default function LessonList({ sectionInfo, expandCurrent = false }: Lesso
                             <span className="d-status-pill">Ready</span>
                         </div>
                         <div className="d-assessment-body">
-                            <button
-                                className="d-btn-assessment"
-                                onClick={() => router.push("/assessment", { state: { assessment } } as never)}
-                            >
-                                Begin Assessment
-                            </button>
-                        </div>
-                    </div>
-                )}
-
-                {sectionInfo.resources && sectionInfo.resources.length > 0 && (
-                    <div className="d-resources">
-                        <span className="d-resources-label">Resources</span>
-                        <div className="d-resources-list">
-                            {sectionInfo.resources.map((res: Resource, i: number) => (
-                                <a key={i} href={res.url} target="_blank" rel="noopener noreferrer" className="d-resource-link">
-                                    <span className="d-resource-title">{res.title}</span>
-                                    <span className="d-resource-source">{res.source}</span>
-                                </a>
-                            ))}
+                            <p className="d-assessment-desc">{assessment.content}</p>
+                            <div className="d-assessment-reqs">
+                                {assessment.requirements.map((req: Requirement, i: number) => (
+                                    <div key={i} className="d-req-tag">
+                                        {req.name} — <span className="d-req-pts">{req.points} pts</span>
+                                    </div>
+                                ))}
+                            </div>
+                            <button className="d-btn-assessment">Begin Assessment</button>
                         </div>
                     </div>
                 )}
