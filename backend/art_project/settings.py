@@ -177,3 +177,7 @@ AUTHENTICATION_BACKENDS = [
 
 LOGIN_REDIRECT_URL = '/' # Redirect to the homepage after login
 LOGOUT_REDIRECT_URL = '/' # Redirect to the homepage after logout
+
+# Celery
+CELERY_BROKER_URL = config('REDIS_URL', default='redis://localhost:6379/0')
+CELERY_RESULT_BACKEND = config('REDIS_URL', default='redis://localhost:6379/0')
