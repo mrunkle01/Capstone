@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { SectionResponse, Lesson, Assessment, Requirement, Resource } from "@/lib/types/dashboard";
+import { useRouter } from "next/navigation";
+import { SectionResponse, Lesson, Assessment, Resource } from "@/lib/types/dashboard";
 
 interface LessonListProps {
     sectionInfo: SectionResponse;
@@ -9,6 +10,7 @@ interface LessonListProps {
 }
 
 export default function LessonList({ sectionInfo, expandCurrent = false }: LessonListProps) {
+    const router = useRouter();
     const lessons: Lesson[] = [...sectionInfo.Lessons].sort((a, b) => a.order - b.order);
     const assessment: Assessment = sectionInfo.Assessment;
 
@@ -141,15 +143,12 @@ export default function LessonList({ sectionInfo, expandCurrent = false }: Lesso
                             <span className="d-status-pill">Ready</span>
                         </div>
                         <div className="d-assessment-body">
-                            <p className="d-assessment-desc">{assessment.content}</p>
-                            <div className="d-assessment-reqs">
-                                {assessment.requirements.map((req: Requirement, i: number) => (
-                                    <div key={i} className="d-req-tag">
-                                        {req.name} — <span className="d-req-pts">{req.points} pts</span>
-                                    </div>
-                                ))}
-                            </div>
-                            <button className="d-btn-assessment">Begin Assessment</button>
+                            <button
+                                className="d-btn-assessment"
+                                onClick={() => router.push("/assessment", { state: { assessment } } as never)}
+                            >
+                                Begin Assessment
+                            </button>
                         </div>
                     </div>
                 )}
