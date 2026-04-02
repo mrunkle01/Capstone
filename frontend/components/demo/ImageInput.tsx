@@ -50,12 +50,12 @@ export default function ImageInput({ setImageUrl, onFileSelected, submitRef }: I
     const handleSubmit = async () => {
         if (!imgFile.current) { return }
         setError(null);
-
+        const assignment = "Create a 45-minute drawing of three objects with distinct materials (e.g., a glass bottle, a folded linen cloth, and a terracotta pot) arranged in natural light. No reference photos — observe real objects. Focus on integrating all skills from Lessons 1–3."
         try {
             const formData = new FormData();
             formData.append("image", imgFile.current)
             setIsLoading(true);
-            const data = await testImage(formData);
+            const data = await testImage(formData, assignment );
             localStorage.setItem("assessmentResult", JSON.stringify(data));
             localStorage.setItem("imageUrl", imgUrl.current ?? "");
             router.push(`/demo/1/results`);
