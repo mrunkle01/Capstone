@@ -3,9 +3,14 @@ const API = process.env.NEXT_PUBLIC_API_URL;
 export async function testImage(formData: FormData, assignment: string){
     const res = await fetch(`${API}/api/gradeImage?assignment=${encodeURIComponent(assignment)}`, {
         method: "POST",
+        credentials: "include",
         body: formData
     })
-    if (!res.ok) throw new Error("Failed to start grading");
+    if (!res.ok) {
+        const err = await res.text();
+        console.error("gradeImage error:", err);
+        throw new Error("Failed to start grading");
+    }
 
     const { job_id } = await res.json();
 
@@ -13,6 +18,7 @@ export async function testImage(formData: FormData, assignment: string){
         await new Promise((r) => setTimeout(r, 5000));
         const poll = await fetch(`${API}/api/gradeImage/status/${job_id}`, {
             method: "POST",
+            credentials: "include",
         });
         if (!poll.ok) throw new Error("Failed to check grading status");
 

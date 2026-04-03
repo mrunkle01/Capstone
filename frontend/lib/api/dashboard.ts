@@ -7,11 +7,6 @@ export type UserInfo = {
 };
 
 const API = process.env.NEXT_PUBLIC_API_URL;
-
-/**
- * Try to load a previously saved dashboard from the backend.
- * Returns the SectionResponse if the user has one, or null if not.
- */
 export async function loadDashboard(): Promise<SectionResponse | null> {
     const res = await fetch(`${API}/api/dashboard`, { credentials: "include" });
     if (!res.ok) return null;
@@ -24,10 +19,6 @@ export async function loadDashboard(): Promise<SectionResponse | null> {
     return data as SectionResponse;
 }
 
-/**
- * Kick off AI generation and poll until complete.
- * Returns the generated SectionResponse.
- */
 export async function generateSections(userInfo: UserInfo): Promise<SectionResponse> {
     const url = `${API}/api/generate?topic=${encodeURIComponent(userInfo.topic)}&timeCommit=${encodeURIComponent(userInfo.timeCommit)}&skillLevel=${encodeURIComponent(userInfo.skillLevel)}`;
     const res = await fetch(url, { credentials: "include" });
@@ -47,9 +38,6 @@ export async function generateSections(userInfo: UserInfo): Promise<SectionRespo
     }
 }
 
-/**
- * Save user preferences (topic, time commitment, skill level) to their profile.
- */
 export async function updateUserInfo(userInfo: UserInfo): Promise<void> {
     const res = await fetch(`${API}/api/userInfo`, {
         method: "PUT",
