@@ -111,7 +111,7 @@ class AtelierClient:
         print("Informed Response\n")
 
         informed_res = self.__client.chat(model=model, messages=self.__messages, format=form,
-                                          think=True, options=self.__options)
+                                          think=False, options=self.__options)
         print(informed_res.message.thinking)
         print(informed_res.message.content)
         return informed_res
