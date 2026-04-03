@@ -15,15 +15,15 @@ def grade_user_art(self, assignment : str, img : bytes):
     return {"score": score, "feedback": gradeJSON.feedback, "report_id": gradeJSON.report_id}
 
 @shared_task(bind=True)
-def generate_dashboard_task(self, topic, timeCommit, skillLevel, amount):
+def generate_dashboard_task(self, topic, timeCommit, skillLevel, amount=3):  # amount = number of lessons
     client = AtelierClient()
     sectionJSON = client.generate_lesson_plan(topic, timeCommit, skillLevel, amount)
     return {
         "Section": sectionJSON.section,
-        "Lessons": [{"title": l.title, "content": {"time" : l.content.title,
+        "Lessons": [{"title": l.title, "content": {"time" : l.content.time,
                                                    "skill" : l.content.skill,
                                                    "directions" : l.content.directions,
-                                                   "exercises" : [{e} for e in l.content.exercises]},
+                                                   "exercises" : [e for e in l.content.exercises]},
                      "order": l.order} for l in sectionJSON.lessons],
         "Assessment": {
             "title": sectionJSON.assessment.title,

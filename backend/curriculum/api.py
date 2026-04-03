@@ -56,20 +56,20 @@ def register(request, data: RegisterSchema):
         "message": "User created successfully"
     }
 
-@api.post("/auth/login/")
+@api.post("/auth/login/", response={200: dict, 400: dict, 401: dict})
 def user_login(request, data: UserInSchema):
 
     if not data.password:
-        return {"message": "Password is required"}, 400
+        return 400, {"message": "Password is required"}
     # handles either email or user
     user = authenticate(request, username=data.identifier, password=data.password)
 
     #logs the user in
     if user is not None:
         login(request, user)
-        return {"message": "Login successful"}
+        return 200, {"message": "Login successful"}
     else:
-        return {"message": "Invalid credentials"}, 401
+        return 401, {"message": "Invalid credentials"}
 
 @api.post("/auth/logout/")
 def user_logout(request):
@@ -206,17 +206,17 @@ def check_generate(request, job_id: str):
         return {"status": "error", "error": str(task.result)}
     return {"status": task.state}
 
-@api.get("/dashboard")
+@api.get("/dashboard", response={200: dict, 401: dict, 404: dict})
 def dashboard(request):
     if not request.user.is_authenticated:
-        return {"message": "Not authenticated"}, 401
+        return 401, {"message": "Not authenticated"}
     try:
         db = DashBoard.objects.filter(user=request.user.profile).latest("created_at")
         if not db.contents:
-            return {"message": "No contents"}, 404
-        return db.contents
+            return 404, {"message": "No contents"}
+        return 200, db.contents
     except DashBoard.DoesNotExist:
-        return {"message": "No contents"}, 404
+        return 404, {"message": "No contents"}
 
 #design get request endpoint to allow AI to grab user skill for purposes of modifying lesson plan
 @api.get("/skill")
