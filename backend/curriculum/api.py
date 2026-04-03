@@ -8,7 +8,7 @@ from .models import UserProfile, ConceptLibrary, Section, Assessment, ReportCard
 from .schemas import (RegisterSchema, UpdateProfileSchema, LearningGoalSchema,
                       PretestResultSchema, PretestQuestionSchema,PretestQuestionOptionSchema,
                       SectionSchema, LessonSchema, UserLessonSchema, AssessmentSchema,
-                      ReportCardSchema, ChatLogSchema, UserInSchema)
+                      ReportCardSchema, ChatLogSchema, UserInSchema, LogResultsSchema)
 
 
 
@@ -166,7 +166,7 @@ def get_concept_details(request, concept_name: str):
 def submit_assessment(request, assignment : str, image: UploadedFile = File(...)):
     image_data = image.read()
     task = grade_user_art.delay(assignment, image_data)
-    request.session["task"] = task.id
+    request.session["pending_job_id"] = task.id
     return {"job_id" : task.id}
 
 @api.post("/gradeImage/status/{job_id}")
@@ -237,34 +237,9 @@ def update_user_info(request, userInfo: UpdateProfileSchema):
     request.user.profile.artistic_goal = userInfo.artistic_goal
     request.user.profile.save()
 
-
-
-# # Async generate — returns job_id immediately, poll /generate/status/{job_id} for result
-# # This avoids Railway's 60s proxy keep-alive timeout
-#
-# def _run_job(job_id, topic, timeCommit, skillLevel):
-#     try:
-#         section = generate_lesson_plan(topic, timeCommit, skillLevel)
-#         jobs[job_id] = {"status": "complete", "data": {
-#             "Section": section.section,
-#             "Lessons": [{"title": l.title, "content": l.content, "order": l.order} for l in section.lessons],
-#             "Assessment": {"title": section.assessment.title, "content": section.assessment.content,
-#                            "requirements": [{"name": r.name, "points": r.points} for r in section.assessment.requirements]}
-#         }}
-#     except Exception as e:
-#         print("Generate job failed:", e)
-#         jobs[job_id] = {"status": "error", "error": str(e)}
-
-# @api.get("/generate")
-# def start_generate(request, topic: str, timeCommit: str, skillLevel: str):
-#     job_id = str(uuid.uuid4())
-#     jobs[job_id] = {"status": "pending"}
-#     threading.Thread(target=_run_job, args=(job_id, topic, timeCommit, skillLevel)).start()
-#     return {"job_id": job_id}
-#
-# @api.get("/generate/status/{job_id}")
-# def check_generate(request, job_id: str):
-#     job = jobs.get(job_id)
-#     if not job:
-#         return api.create_response(request, {"error": "Job not found"}, status=404)
-#     return job
+#this endpoint grabs the results after a user assessment and updates/saves each skill based on different criteria
+@api.post("/logResults")
+def log_results(request, results : LogResultsSchema):
+    if (results.skill1 == 4):
+        request.user.profile.skill_level = UserProfile.skill_levels.get(skill=results.skill1)
+    request.user.profile.save()
