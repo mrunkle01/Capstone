@@ -104,31 +104,33 @@ export default function LessonList({ sectionInfo, expandCurrent = false }: Lesso
                                 </div>
 
                                 <div className={`d-card-expand ${isExpanded ? "open" : ""}`}>
-                                    <div className="d-expand-body">
-                                        <div className="d-lesson-meta">
-                                            <span className="d-meta-tag">{lesson.content.time} min</span>
-                                            <span className="d-meta-tag">{lesson.content.skill}</span>
-                                        </div>
-                                        <p className="d-lesson-directions">{lesson.content.directions}</p>
-                                        {lesson.content.exercises.length > 0 && (
-                                            <div className="d-lesson-exercises">
-                                                <span className="d-exercises-label">Exercises</span>
-                                                <ul className="d-exercises-list">
-                                                    {lesson.content.exercises.map((ex, i) => (
-                                                        <li key={i}>{ex}</li>
-                                                    ))}
-                                                </ul>
+                                    <div>
+                                        <div className="d-expand-body">
+                                            <div className="d-lesson-meta">
+                                                <span className="d-meta-tag">{lesson.content.time} min</span>
+                                                <span className="d-meta-tag">{lesson.content.skill}</span>
                                             </div>
+                                            <p className="d-lesson-directions">{lesson.content.directions}</p>
+                                            {lesson.content.exercises.length > 0 && (
+                                                <div className="d-lesson-exercises">
+                                                    <span className="d-exercises-label">Exercises</span>
+                                                    <ul className="d-exercises-list">
+                                                        {lesson.content.exercises.map((ex, i) => (
+                                                            <li key={i}>{ex}</li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                            )}
+                                        </div>
+                                        {status === "current" && (
+                                            <button
+                                                className="d-expand-btn d-btn-continue"
+                                                onClick={(e) => handleContinue(e, index)}
+                                            >
+                                                Continue
+                                            </button>
                                         )}
                                     </div>
-                                    {status === "current" && (
-                                        <button
-                                            className="d-expand-btn d-btn-continue"
-                                            onClick={(e) => handleContinue(e, index)}
-                                        >
-                                            Continue
-                                        </button>
-                                    )}
                                 </div>
                             </div>
                         );
@@ -145,7 +147,7 @@ export default function LessonList({ sectionInfo, expandCurrent = false }: Lesso
                         <div className="d-assessment-body">
                             <button
                                 className="d-btn-assessment"
-                                onClick={() => router.push("/assessment", { state: { assessment } } as never)}
+                                onClick={() => router.push("/assessment")}
                             >
                                 Begin Assessment
                             </button>
@@ -156,11 +158,17 @@ export default function LessonList({ sectionInfo, expandCurrent = false }: Lesso
                 {sectionInfo.resources && sectionInfo.resources.length > 0 && (
                     <div className="d-resources">
                         <span className="d-resources-label">Resources</span>
-                        <div className="d-resources-list">
+                        <div className="d-resources-grid">
                             {sectionInfo.resources.map((res: Resource, i: number) => (
-                                <a key={i} href={res.url} target="_blank" rel="noopener noreferrer" className="d-resource-link">
-                                    <span className="d-resource-title">{res.title}</span>
-                                    <span className="d-resource-source">{res.source}</span>
+                                <a key={i} href={res.url} target="_blank" rel="noopener noreferrer" className="d-resource-card">
+                                    <span className="d-resource-card-title">{res.title}</span>
+                                    <span className="d-resource-card-footer">
+                                        <span className="d-resource-card-source">{res.source}</span>
+                                        <svg className="d-resource-card-icon" width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                            <path d="M5.25 2.625H3.5a.875.875 0 00-.875.875v7a.875.875 0 00.875.875h7a.875.875 0 00.875-.875V8.75" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round"/>
+                                            <path d="M8.75 2.625h2.625V5.25M7.875 6.125l3.5-3.5" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round"/>
+                                        </svg>
+                                    </span>
                                 </a>
                             ))}
                         </div>
