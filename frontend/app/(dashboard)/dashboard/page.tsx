@@ -5,12 +5,14 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { SectionResponse } from "@/lib/types/dashboard";
 import { loadDashboard, generateSections } from "@/lib/api/dashboard";
+import { useDashboardContext } from "@/lib/context/DashboardContext";
 import Greeting from "@/components/dashboard/Greeting";
 import LessonList from "@/components/dashboard/LessonList";
 import DashboardSkeleton from "./loading";
 
 function DashboardContent() {
     const searchParams = useSearchParams();
+    const { setAssessment } = useDashboardContext();
     const [sectionInfo, setSectionInfo] = useState<SectionResponse | null>(null);
     const [error, setError] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -29,6 +31,7 @@ function DashboardContent() {
                 const saved = await loadDashboard();
                 if (!cancelled && saved) {
                     setSectionInfo(saved);
+                    setAssessment(saved.Assessment);
                     setLoading(false);
                     return;
                 }
@@ -50,6 +53,7 @@ function DashboardContent() {
                 const data = await generateSections({ topic, timeCommit, skillLevel });
                 if (!cancelled) {
                     setSectionInfo(data);
+                    setAssessment(data.Assessment);
                     setLoading(false);
                 }
             } catch (e) {
@@ -106,11 +110,6 @@ function DashboardContent() {
         <div className="d-main">
             <Greeting />
             <LessonList sectionInfo={sectionInfo} expandCurrent={expandLesson === "current"} />
-            <div style={{ marginTop: "24px", textAlign: "center" }}>
-                <Link href="/pretest" className="d-btn-demo-pretest">
-                    Try a different plan
-                </Link>
-            </div>
         </div>
     );
 }

@@ -736,12 +736,15 @@
 
 /* Card expand */
 .d-card-expand {
-    max-height: 0;
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.3s ease, margin-top 0.2s ease, padding 0.2s ease;
+}
+.d-card-expand > div {
     overflow: hidden;
-    transition: max-height 0.3s ease, margin-top 0.2s ease, padding 0.2s ease;
 }
 .d-card-expand.open {
-    max-height: 300px;
+    grid-template-rows: 1fr;
     margin-top: 14px;
     padding-top: 14px;
     border-top: 0.5px solid #D8D5CC;
@@ -750,6 +753,64 @@
     font-size: 13px;
     color: #4A4940;
     line-height: 1.6;
+}
+.d-lesson-meta {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+.d-meta-tag {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 4px;
+    background: #F0EDE5;
+    font-size: 11px;
+    font-weight: 500;
+    color: #6B6A60;
+    letter-spacing: 0.02em;
+}
+.d-lesson-directions {
+    margin: 0 0 14px 0;
+    color: #4A4940;
+    font-size: 13px;
+    line-height: 1.65;
+}
+.d-lesson-exercises {
+    margin-top: 2px;
+}
+.d-exercises-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #9B9889;
+    margin-bottom: 6px;
+}
+.d-exercises-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.d-exercises-list li {
+    position: relative;
+    padding-left: 16px;
+    font-size: 13px;
+    color: #4A4940;
+    line-height: 1.5;
+}
+.d-exercises-list li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 7px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #C4A44A;
 }
 .d-expand-btn {
     margin-top: 14px;
@@ -833,6 +894,65 @@
 }
 .d-btn-assessment:hover {
     background: #b3933e;
+}
+
+/* Resources */
+.d-resources {
+    margin-top: 16px;
+}
+.d-resources-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #9B9889;
+    margin-bottom: 10px;
+}
+.d-resources-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+}
+.d-resource-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 8px;
+    background: #FFFFFF;
+    border: 0.5px solid #D8D5CC;
+    border-radius: 8px;
+    padding: 14px 16px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+.d-resource-card:hover {
+    border-color: #C4A44A;
+    box-shadow: 0 2px 8px rgba(196, 164, 74, 0.12);
+}
+.d-resource-card-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: #2C2A22;
+    line-height: 1.4;
+}
+.d-resource-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+}
+.d-resource-card-source {
+    font-size: 11px;
+    color: #9B9889;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.d-resource-card-icon {
+    flex-shrink: 0;
+    color: #C4A44A;
 }
 
 .d-btn-demo-pretest {
