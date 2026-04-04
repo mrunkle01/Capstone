@@ -1,0 +1,24 @@
+Can you grade my performance drawing this image according to the following assignment
+{assignment}
+Score is a percentage of 0-100 represented by a float (i.e 0.5 for 50% and 1.0 for 100%.
+Provide the points I got for each requirement of the assignment in the requirements list of the grade. They should share
+the same name and id.
+Feedback should contain your written report describing the submitted image in great detail before giving critiques,
+weaknesses, and strengths you observe.
+Report id is a short string representation (i.e val_01_report)
+Follow this json schema but don't wrap the output in ```json```:
+{
+    "score":float,
+    "requirements": list[Requirement],
+    "feedback":str,
+    "report_id":str
+}
+and this one for requirements:
+requirements: [
+    {
+        "name": str,
+        "r_id": str,
+        "points": int,
+    }
+]
+If the assignment doesn't have requirements, then try to create your own while following the format.
