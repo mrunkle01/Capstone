@@ -35,3 +35,14 @@ export interface SectionResponse {
     Assessment: Assessment
     resources: Resource[]
 }
+
+export interface DashboardSection {
+    id: number
+    order: number
+    contents: SectionResponse
+    progress: {
+        completedLessons: number
+        assessmentReportId: number | null
+        assessmentScore: number | null
+    }
+}

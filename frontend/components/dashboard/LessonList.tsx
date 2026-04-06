@@ -3,35 +3,58 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { SectionResponse, Lesson, Assessment, Resource } from "@/lib/types/dashboard";
+import { saveProgress, DashboardProgress } from "@/lib/api/dashboard";
 
 interface LessonListProps {
+    sectionId: number;
+    sectionOrder: number;
     sectionInfo: SectionResponse;
+    initialProgress: DashboardProgress;
     expandCurrent?: boolean;
+    isCompleted?: boolean;
 }
 
-export default function LessonList({ sectionInfo, expandCurrent = false }: LessonListProps) {
+export default function LessonList({
+    sectionId,
+    sectionOrder,
+    sectionInfo,
+    initialProgress,
+    expandCurrent = false,
+    isCompleted = false,
+}: LessonListProps) {
     const router = useRouter();
     const lessons: Lesson[] = [...sectionInfo.Lessons].sort((a, b) => a.order - b.order);
     const assessment: Assessment = sectionInfo.Assessment;
 
-    const [completedCount, setCompletedCount] = useState(0);
+    const [completedCount, setCompletedCount] = useState(initialProgress.completedLessons ?? 0);
     const [expandedCard, setExpandedCard] = useState<number>(-1);
     const [sectionOpen, setSectionOpen] = useState(false);
+    const [assessmentReportId, setAssessmentReportId] = useState<number | null>(initialProgress.assessmentReportId ?? null);
+    const [assessmentScore, setAssessmentScore] = useState<number | null>(initialProgress.assessmentScore ?? null);
+
+    // For completed past sections, mark everything done
+    const effectiveCompletedCount = isCompleted ? lessons.length : completedCount;
+    const effectiveAssessmentDone = isCompleted || assessmentReportId !== null;
 
     useEffect(() => {
-        if (expandCurrent) {
+        if (expandCurrent && !isCompleted) {
             setSectionOpen(true);
             setExpandedCard(completedCount < lessons.length ? completedCount : -1);
         }
     }, [expandCurrent]);
 
     function getStatus(index: number): "completed" | "current" | "locked" {
-        if (index < completedCount) return "completed";
-        if (index === completedCount) return "current";
+        if (index < effectiveCompletedCount) return "completed";
+        if (index === effectiveCompletedCount) return "current";
         return "locked";
     }
 
     function handleCardClick(index: number) {
+        if (isCompleted) {
+            // Past sections can expand any card for review
+            setExpandedCard(expandedCard === index ? -1 : index);
+            return;
+        }
         const status = getStatus(index);
         if (status === "locked") return;
         setExpandedCard(expandedCard === index ? -1 : index);
@@ -39,19 +62,33 @@ export default function LessonList({ sectionInfo, expandCurrent = false }: Lesso
 
     function handleContinue(e: React.MouseEvent, index: number) {
         e.stopPropagation();
-        setCompletedCount(index + 1);
+        const newCount = index + 1;
+        setCompletedCount(newCount);
         setExpandedCard(-1);
+        saveProgress(sectionId, { completedLessons: newCount, assessmentReportId, assessmentScore });
+    }
+
+    const sectionNum = String(sectionOrder).padStart(2, "0");
+    const allLessonsDone = effectiveCompletedCount >= lessons.length;
+
+    // Determine section bar status
+    let sectionStatus: string;
+    if (effectiveAssessmentDone) {
+        sectionStatus = "Completed";
+    } else if (effectiveCompletedCount > 0) {
+        sectionStatus = "In progress";
+    } else {
+        sectionStatus = "Not started";
     }
 
     return (
         <div>
             <div className="d-section-bar" onClick={() => setSectionOpen(!sectionOpen)}>
                 <div className="d-section-bar-left">
-                    {/*//this will need to be grabbed when we have section numbers*/}
-                    <span className="d-section-num">01</span>
+                    <span className="d-section-num">{sectionNum}</span>
                     <span className="d-current-title">{sectionInfo.Section}</span>
                     <span className="d-status-pill">
-                        {completedCount >= lessons.length ? "Completed" : "In progress"}
+                        {sectionStatus}
                     </span>
                 </div>
                 <span className={`d-chevron ${sectionOpen ? "open" : ""}`}>&#9656;</span>
@@ -60,7 +97,7 @@ export default function LessonList({ sectionInfo, expandCurrent = false }: Lesso
             <div className={`d-section-body ${sectionOpen ? "open" : ""}`}>
                 <div className="d-cards-stack">
                     {lessons.map((lesson, index) => {
-                        const status = getStatus(index);
+                        const status = isCompleted ? "completed" : getStatus(index);
                         const isExpanded = expandedCard === index;
 
                         return (
@@ -122,7 +159,7 @@ export default function LessonList({ sectionInfo, expandCurrent = false }: Lesso
                                                 </div>
                                             )}
                                         </div>
-                                        {status === "current" && (
+                                        {status === "current" && !isCompleted && (
                                             <button
                                                 className="d-expand-btn d-btn-continue"
                                                 onClick={(e) => handleContinue(e, index)}
@@ -137,20 +174,41 @@ export default function LessonList({ sectionInfo, expandCurrent = false }: Lesso
                     })}
                 </div>
 
-                {completedCount >= lessons.length && (
-                    <div className="d-assessment d-assessment-unlocked">
+                {allLessonsDone && (
+                    <div className={`d-assessment ${effectiveAssessmentDone ? "d-assessment-completed" : "d-assessment-unlocked"}`}>
                         <div className="d-assessment-header">
                             <span className="d-section-num">Assessment</span>
                             <span className="d-current-title">{assessment.title}</span>
-                            <span className="d-status-pill">Ready</span>
+                            {effectiveAssessmentDone ? (
+                                <span className="d-pill-complete">Completed</span>
+                            ) : (
+                                <span className="d-status-pill">Ready</span>
+                            )}
                         </div>
                         <div className="d-assessment-body">
-                            <button
-                                className="d-btn-assessment"
-                                onClick={() => router.push("/assessment")}
-                            >
-                                Begin Assessment
-                            </button>
+                            {effectiveAssessmentDone && assessmentReportId ? (
+                                <div className="d-assessment-footer">
+                                    <button
+                                        className="d-btn-assessment"
+                                        onClick={() => router.push(`/assessment/result/${assessmentReportId}`)}
+                                    >
+                                        View Assessment
+                                    </button>
+                                    {assessmentScore !== null && (
+                                        <div>
+                                            <span className="d-assessment-score">{assessmentScore}</span>
+                                            <span className="d-assessment-score-label"> / 100</span>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : !isCompleted ? (
+                                <button
+                                    className="d-btn-assessment"
+                                    onClick={() => router.push("/assessment")}
+                                >
+                                    Begin Assessment
+                                </button>
+                            ) : null}
                         </div>
                     </div>
                 )}

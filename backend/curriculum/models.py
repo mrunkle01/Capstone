@@ -295,12 +295,37 @@ class DashBoard(models.Model):
     )
 
     contents = models.JSONField(default=dict)
+    progress = models.JSONField(default=dict, blank=True)
+    order = models.IntegerField(default=1)
+    task_id = models.CharField(max_length=255, null=True, blank=True, unique=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['order']
+
     def __str__(self):
-        return f"DashBoard - {self.user}"
+        return f"DashBoard - {self.user} - Section {self.order}"
 
 # Placeholder models for future use
+class GradeReport(models.Model):
+    user = models.ForeignKey(
+        UserProfile,
+        on_delete=models.CASCADE,
+        related_name='grade_reports',
+        null=True,
+        blank=True,
+    )
+    score = models.IntegerField(null=True, blank=True)
+    feedback = models.TextField(blank=True)
+    assignment = models.TextField()
+    image = models.BinaryField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"GradeReport {self.id} - score: {self.score}"
+
+
 class Drawings(models.Model):
     name = models.CharField(max_length=100)
 

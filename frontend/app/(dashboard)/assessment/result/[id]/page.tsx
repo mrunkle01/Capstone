@@ -1,19 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
+import { loadResult } from "@/lib/api/results";
+import { loadDashboard, loadLatestSection, loadProgress, saveProgress, generateSections } from "@/lib/api/dashboard";
+import { loadUser } from "@/lib/api/profile";
+import { buildNextSectionParams } from "@/lib/utils/nextSection";
 import { AssessmentResult } from "@/lib/types/assessment";
 import styles from "./result.module.css";
-
-// Isolated data-fetching — swap to API call by report_id when ready
-function loadResult(): { result: AssessmentResult | null; imageUrl: string | null } {
-    const stored = localStorage.getItem("assessmentResult");
-    const imageUrl = localStorage.getItem("imageUrl");
-    return {
-        result: stored ? JSON.parse(stored) : null,
-        imageUrl,
-    };
-}
 
 function getScoreTier(score: number) {
     if (score >= 70) return { label: "Strong", color: "#4a8c5c", bg: "rgba(74,140,92,0.10)" };
@@ -23,20 +17,76 @@ function getScoreTier(score: number) {
 
 export default function ResultPage() {
     const router = useRouter();
+    const params = useParams();
+    const reportId = params.id as string;
+
     const [result, setResult] = useState<AssessmentResult | null>(null);
     const [imageUrl, setImageUrl] = useState<string | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [generating, setGenerating] = useState(false);
 
     useEffect(() => {
-        const { result: r, imageUrl: img } = loadResult();
-        if (!r) {
-            router.replace("/dashboard");
-            return;
-        }
-        setResult(r);
-        setImageUrl(img);
-    }, [router]);
+        if (!reportId) return;
+        loadResult(Number(reportId))
+            .then(({ result: r, imageUrl: img }) => {
+                setResult(r);
+                setImageUrl(img);
 
-    if (!result) return null;
+                // Save assessment completion to dashboard progress
+                loadDashboard().then((sections) => {
+                    if (!sections || sections.length === 0) return;
+                    const latest = sections[sections.length - 1];
+                    saveProgress(latest.id, {
+                        ...latest.progress,
+                        assessmentReportId: r.report_id,
+                        assessmentScore: r.score,
+                    });
+                });
+            })
+            .catch(() => {
+                router.replace("/dashboard");
+            })
+            .finally(() => setLoading(false));
+    }, [reportId, router]);
+
+    async function handleContinueToNext() {
+        if (!result || generating) return;
+        setGenerating(true);
+        try {
+            // Load the current section and user profile to build context
+            const [sectionData, profile] = await Promise.all([
+                loadLatestSection(),
+                loadUser(),
+            ]);
+
+            if (!sectionData || !profile) {
+                router.push("/dashboard");
+                return;
+            }
+
+            const { topic, amount } = buildNextSectionParams(
+                result.score,
+                result.feedback,
+                sectionData,
+            );
+
+            await generateSections(
+                {
+                    topic,
+                    timeCommit: profile.time_commitment || "regular",
+                    skillLevel: profile.skill_level || "beginner",
+                },
+                amount,
+            );
+
+            router.push("/dashboard");
+        } catch (e) {
+            console.error("Failed to generate next section:", e);
+            setGenerating(false);
+        }
+    }
+
+    if (loading || !result) return null;
 
     const tier = getScoreTier(result.score);
     const feedbackParagraphs = result.feedback.split("\n\n").filter(Boolean);
@@ -102,8 +152,13 @@ export default function ResultPage() {
             </div>
 
             <div className={styles.actions}>
-                <button className={styles.btnContinue}>
-                    Continue to next section
+                <button
+                    className={styles.btnContinue}
+                    onClick={handleContinueToNext}
+                    disabled={generating}
+                    style={{ opacity: generating ? 0.6 : 1 }}
+                >
+                    {generating ? "Generating next section..." : "Continue to next section"}
                 </button>
                 <button
                     className={styles.btnBack}

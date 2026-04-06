@@ -850,6 +850,11 @@
     opacity: 1;
     border-left: 3px solid #C4A44A;
 }
+.d-assessment-completed {
+    opacity: 1;
+    background: #EDEAE2;
+    border-left: 3px solid #6B8C5A;
+}
 .d-assessment-header {
     display: flex;
     align-items: center;
@@ -894,6 +899,22 @@
 }
 .d-btn-assessment:hover {
     background: #b3933e;
+}
+.d-assessment-footer {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 16px;
+}
+.d-assessment-score {
+    font-family: var(--font-playfair), 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 400;
+    color: #2C2A22;
+}
+.d-assessment-score-label {
+    font-size: 12px;
+    color: #6B6A60;
 }
 
 /* Resources */

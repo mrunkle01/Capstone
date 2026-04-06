@@ -4,15 +4,22 @@ from .atelier_agent import AtelierClient
 
 
 @shared_task(bind=True)
-def grade_user_art(self, assignment : str, img : bytes):
+def grade_user_art(self, assignment : str, img : bytes, report_id=None):
     client = AtelierClient()
 
     gradeJSON = client.grade_art(assignment, img)
 
     score = int(gradeJSON.score * 100)
 
+    # Update the GradeReport row with score + feedback
+    if report_id:
+        from .models import GradeReport
+        GradeReport.objects.filter(id=report_id).update(
+            score=score,
+            feedback=gradeJSON.feedback,
+        )
 
-    return {"score": score, "feedback": gradeJSON.feedback, "report_id": gradeJSON.report_id}
+    return {"score": score, "feedback": gradeJSON.feedback, "report_id": report_id}
 
 @shared_task(bind=True)
 def generate_dashboard_task(self, topic, timeCommit, skillLevel, amount=3):  # amount = number of lessons

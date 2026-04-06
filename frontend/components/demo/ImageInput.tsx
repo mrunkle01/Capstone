@@ -56,9 +56,9 @@ export default function ImageInput({ setImageUrl, onFileSelected, submitRef }: I
             formData.append("image", imgFile.current)
             setIsLoading(true);
             const data = await testImage(formData, assignment );
-            localStorage.setItem("assessmentResult", JSON.stringify(data));
-            localStorage.setItem("imageUrl", imgUrl.current ?? "");
-            router.push(`/assessment/result`);
+            // localStorage.setItem("assessmentResult", JSON.stringify(data));
+            // localStorage.setItem("imageUrl", imgUrl.current ?? "");
+            router.push(`/assessment/result/${data.report_id}`);
         } catch (error) {
             setError("Something went wrong. Please try again.")
             setIsLoading(false);
