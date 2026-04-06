@@ -24,10 +24,12 @@ export default function RegisterForm() {
   const [email, setEmail] = useState("")
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
   const [registerErrors, setRegisterErrors] = useState(false)
   const [emailErrors, setEmailErrors] = useState<string[]>([])
   const [usernameErrors, setUsernameErrors] = useState<string[]>([])
   const [passwordErrors, setPasswordErrors] = useState<string[]>([])
+  const [confirmErrors, setConfirmErrors] = useState<string[]>([])
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -36,11 +38,14 @@ export default function RegisterForm() {
     const usernameRes: ValidationRes = validateUsername(username)
     const passwordRes: ValidationRes = validatePassword(password)
 
+    const confirmErrs: string[] = confirmPassword !== password ? ["Passwords do not match."] : []
+
     setEmailErrors(emailRes.errors)
     setUsernameErrors(usernameRes.errors)
     setPasswordErrors(passwordRes.errors)
+    setConfirmErrors(confirmErrs)
 
-    if (!emailRes.valid || !usernameRes.valid || !passwordRes.valid) return
+    if (!emailRes.valid || !usernameRes.valid || !passwordRes.valid || confirmErrs.length > 0) return
 
     try {
       await registerUser(email, username, password)
@@ -136,6 +141,22 @@ export default function RegisterForm() {
             />
             <span className="ap-password-hint">10–32 characters, at least one number and one special character</span>
             {passwordErrors.map((err) => (
+              <span key={err} className="ap-field-error">{err}</span>
+            ))}
+          </div>
+
+          <div className="ap-form-group">
+            <label htmlFor="reg-confirm-password">Confirm password</label>
+            <input
+              type="password"
+              id="reg-confirm-password"
+              placeholder="••••••••••"
+              autoComplete="new-password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className={confirmErrors.length > 0 ? "ap-input-error" : ""}
+            />
+            {confirmErrors.map((err) => (
               <span key={err} className="ap-field-error">{err}</span>
             ))}
           </div>
