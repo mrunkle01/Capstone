@@ -87,3 +87,8 @@ class LogResultsSchema(Schema):
     shading: float
     composition: float
     value: float
+
+class ProgressSchema(Schema):
+    completedLessons: int = 0
+    assessmentReportId: Optional[int] = None
+    assessmentScore: Optional[int] = None

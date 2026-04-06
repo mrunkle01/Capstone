@@ -12,7 +12,7 @@ export async function testImage(formData: FormData, assignment: string){
         throw new Error("Failed to start grading");
     }
 
-    const { job_id } = await res.json();
+    const { job_id, report_id } = await res.json();
 
     while (true) {
         await new Promise((r) => setTimeout(r, 5000));
@@ -23,9 +23,17 @@ export async function testImage(formData: FormData, assignment: string){
         if (!poll.ok) throw new Error("Failed to check grading status");
 
         const job = await poll.json();
-        if (job.status === "complete") return job.data;
+        if (job.status === "complete") return { ...job.data, report_id };
         if (job.status === "error") throw new Error(job.error || "AI grading failed");
         // status === "pending" — keep polling
     }
+}
+
+export async function getReport(reportId: number) {
+    const res = await fetch(`${API}/api/report/${reportId}`, {
+        credentials: "include",
+    });
+    if (!res.ok) throw new Error("Failed to fetch report");
+    return res.json();
 }
 

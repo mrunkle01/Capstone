@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { SectionResponse } from "@/lib/types/dashboard";
+import { DashboardSection } from "@/lib/types/dashboard";
 import { loadDashboard, generateSections } from "@/lib/api/dashboard";
 import { useDashboardContext } from "@/lib/context/DashboardContext";
 import Greeting from "@/components/dashboard/Greeting";
@@ -13,7 +13,7 @@ import DashboardSkeleton from "./loading";
 function DashboardContent() {
     const searchParams = useSearchParams();
     const { setAssessment } = useDashboardContext();
-    const [sectionInfo, setSectionInfo] = useState<SectionResponse | null>(null);
+    const [sections, setSections] = useState<DashboardSection[] | null>(null);
     const [error, setError] = useState(false);
     const [loading, setLoading] = useState(true);
     const [retryKey, setRetryKey] = useState(0);
@@ -23,15 +23,17 @@ function DashboardContent() {
         let cancelled = false;
         setError(false);
         setLoading(true);
-        setSectionInfo(null);
+        setSections(null);
 
         async function fetchDashboard() {
             try {
-                // First, try to load a previously saved dashboard from the backend
+                // First, try to load previously saved sections from the backend
                 const saved = await loadDashboard();
-                if (!cancelled && saved) {
-                    setSectionInfo(saved);
-                    setAssessment(saved.Assessment);
+                if (!cancelled && saved && saved.length > 0) {
+                    setSections(saved);
+                    // Set the latest section's assessment in context
+                    const latest = saved[saved.length - 1];
+                    setAssessment(latest.contents.Assessment);
                     setLoading(false);
                     return;
                 }
@@ -50,10 +52,21 @@ function DashboardContent() {
                 }
 
                 // Generate a new plan via AI
+                // Guard against React Strict Mode double-firing the effect
+                if (cancelled) return;
                 const data = await generateSections({ topic, timeCommit, skillLevel });
                 if (!cancelled) {
-                    setSectionInfo(data);
-                    setAssessment(data.Assessment);
+                    // Re-fetch to get the saved section with its DB id
+                    const refreshed = await loadDashboard();
+                    if (refreshed && refreshed.length > 0) {
+                        setSections(refreshed);
+                        const latest = refreshed[refreshed.length - 1];
+                        setAssessment(latest.contents.Assessment);
+                    } else {
+                        // Fallback: wrap the generated data as a single section
+                        setSections([{ id: 0, order: 1, contents: data, progress: { completedLessons: 0, assessmentReportId: null, assessmentScore: null } }]);
+                        setAssessment(data.Assessment);
+                    }
                     setLoading(false);
                 }
             } catch (e) {
@@ -92,7 +105,7 @@ function DashboardContent() {
         return <DashboardSkeleton />;
     }
 
-    if (!sectionInfo) {
+    if (!sections || sections.length === 0) {
         return (
             <div className="d-main" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "16px" }}>
                 <Greeting />
@@ -109,7 +122,20 @@ function DashboardContent() {
     return (
         <div className="d-main">
             <Greeting />
-            <LessonList sectionInfo={sectionInfo} expandCurrent={expandLesson === "current"} />
+            {sections.map((section, idx) => {
+                const isLatest = idx === sections.length - 1;
+                return (
+                    <LessonList
+                        key={section.id}
+                        sectionId={section.id}
+                        sectionOrder={section.order}
+                        sectionInfo={section.contents}
+                        initialProgress={section.progress}
+                        expandCurrent={isLatest && expandLesson === "current"}
+                        isCompleted={!isLatest}
+                    />
+                );
+            })}
         </div>
     );
 }
