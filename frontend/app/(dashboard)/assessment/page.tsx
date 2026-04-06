@@ -12,6 +12,7 @@ export default function AssessmentPage() {
     const { assessment } = useDashboardContext();
     const [hasImage, setHasImage] = useState(false);
     const [imageUrl, setImageUrl] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const submitRef = useRef<(() => void) | null>(null);
 
     useEffect(() => {
@@ -51,11 +52,11 @@ export default function AssessmentPage() {
             <div className={styles.submitRow}>
                 <button
                     className={styles.btnPrimary}
-                    disabled={!hasImage}
-                    style={{ opacity: hasImage ? 1 : 0.45 }}
-                    onClick={() => submitRef.current?.()}
+                    disabled={!hasImage || isSubmitting}
+                    style={{ opacity: hasImage && !isSubmitting ? 1 : 0.45 }}
+                    onClick={() => { setIsSubmitting(true); submitRef.current?.(); }}
                 >
-                    Submit for grading
+                    {isSubmitting ? "Submitting..." : "Submit for grading"}
                 </button>
             </div>
         </div>

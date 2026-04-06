@@ -163,6 +163,8 @@ export default function ResultPage() {
                 <button
                     className={styles.btnBack}
                     onClick={() => router.push("/dashboard")}
+                    disabled={generating}
+                    style={{ opacity: generating ? 0.45 : 1 }}
                 >
                     &larr; Back to dashboard
                 </button>

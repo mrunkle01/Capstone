@@ -92,3 +92,16 @@ class ProgressSchema(Schema):
     completedLessons: int = 0
     assessmentReportId: Optional[int] = None
     assessmentScore: Optional[int] = None
+
+
+class PretestScoresSchema(Schema):
+    gesture: dict
+    lifeDrawing: dict
+    stillLife: dict
+    thumbnail: dict
+
+
+class PretestGenerateSchema(Schema):
+    pretest_scores: PretestScoresSchema
+    goal: str
+    time_commitment: str

@@ -1,18 +1,14 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { Playfair_Display, DM_Sans } from "next/font/google";
-import { updateUserInfo } from "@/lib/api/dashboard";
-import "../../(auth)/auth.css";
-
-// import QuestionList from "@/components/onboarding/QuestionList";
+import { submitPretestImage, resolveAllPretestScores } from "@/lib/api/pretest";
+import styles from "./pretest.module.css";
 
 const playfair = Playfair_Display({
     subsets: ["latin"],
     weight: ["400", "700"],
-    style: ["normal", "italic"],
     variable: "--font-playfair",
 });
 
@@ -22,89 +18,334 @@ const dmSans = DM_Sans({
     variable: "--font-dm-sans",
 });
 
-export default function Pretest() {
-    const router = useRouter();
-    const [topic, setTopic] = useState("");
-    const [timeCommit, setTimeCommit] = useState("30 minutes");
-    const [skillLevel, setSkillLevel] = useState("Beginner");
-    const [topicError, setTopicError] = useState("");
+const QUESTIONS = [
+    {
+        id: 1,
+        title: "Gesture Drawing",
+        image: "/pImg/gesture-figure.jpg",
+        instruction:
+            "Using the reference above, draw a gesture drawing with approximate proportions.",
+        assignment:
+            "Gesture Drawing: Grade this gesture drawing on the following criteria and return ONLY valid JSON with no explanation outside the JSON object.\nCriteria:\n- linework: Assess C, S, and I line usage, line confidence, and varying line weight. Score 0-5.\n- proportions: Assess correct size, distance, and orientation of figure parts relative to each other. Score 0-5.\nReturn format:\n{ linework: { score: X, brief_feedback: '...' }, proportions: { score: X, brief_feedback: '...' } }",
+    },
+    {
+        id: 2,
+        title: "Life Drawing",
+        image: "/pImg/gesture-figure.jpg",
+        instruction:
+            "Now refine your gesture drawing into a detailed figure drawing with accurate anatomy and rendering. Draw on top of your gesture as your foundation and submit the completed drawing.",
+        assignment:
+            "Life Drawing: This drawing was built on top of the student's previous gesture drawing as a base. Grade on the following criteria and return ONLY valid JSON with no explanation outside the JSON object.\nCriteria:\n- anatomy: Assess accuracy of anatomical details over the underlying form. Score 0-3.\n- form: Assess sense of volume and depth of the figure. Score 0-5.\n- proportions: Assess correct size, distance, and orientation of figure parts. Score 0-5.\n- value: Assess rendering of the figure with light and shadow. Score 0-3.\nReturn format:\n{ anatomy: { score: X, brief_feedback: '...' }, form: { score: X, brief_feedback: '...' }, proportions: { score: X, brief_feedback: '...' }, value: { score: X, brief_feedback: '...' } }",
+    },
+    {
+        id: 3,
+        title: "Mini Still Life",
+        image: "/pImg/still-life.JPG",
+        instruction:
+            "Draw the object above, accurately recreating its perspective, orientation, and light and shadow.",
+        assignment:
+            "Still Life: Grade this still life drawing on the following criteria and return ONLY valid JSON with no explanation outside the JSON object.\nCriteria:\n- perspective: Assess whether lines convey a consistent, accurate perspective. Score 0-3.\n- value: Assess rendering of the object with light and shadow. Score 0-4.\n- form: Assess sense of volume and depth of the object. Score 0-5.\nReturn format:\n{ perspective: { score: X, brief_feedback: '...' }, value: { score: X, brief_feedback: '...' }, form: { score: X, brief_feedback: '...' } }",
+    },
+    {
+        id: 4,
+        title: "Thumbnail Sketch",
+        image: "/pImg/Example-thumbnails.jpg",
+        instruction:
+            "Create a thumbnail sketch of the environment above, focusing on composition.",
+        assignment:
+            "Thumbnail: Grade this thumbnail sketch on the following criterion and return ONLY valid JSON with no explanation outside the JSON object.\nCriteria:\n- composition: Assess aesthetically pleasing placement of scene details, use of focal point, balance, and visual flow. Score 0-5.\nReturn format:\n{ composition: { score: X, brief_feedback: '...' } }",
+    },
+];
 
-    const handleSubmit = async (e: FormEvent) => {
-        e.preventDefault();
-        if (!topic.trim()) {
-            setTopicError("Please enter a topic.");
-            return;
-        }
-        // Save preferences to the backend profile
-        await updateUserInfo({ topic: topic.trim(), timeCommit, skillLevel });
-        const params = new URLSearchParams({ topic: topic.trim(), timeCommit, skillLevel });
-        router.push(`/dashboard?${params.toString()}`);
+const GOALS = [
+    "Manga / Anime",
+    "Realistic Portrait",
+    "Character Design (Cartoon)",
+    "Concept Art",
+    "Comic / Graphic Novel",
+    "Environment & Landscape",
+    "Impressionism / Painterly",
+    "Urban Sketching",
+    "Still Life & Objects",
+    "General Drawing Fundamentals",
+];
+
+const TIME_OPTIONS = [
+    "15 minutes",
+    "30 minutes",
+    "1 hour",
+    "1.5 hours",
+    "2+ hours",
+];
+
+type Step = 1 | 2 | 3 | 4 | "preferences" | "loading";
+
+export default function PretestPage() {
+    const router = useRouter();
+
+    const [currentStep, setCurrentStep] = useState<Step>(1);
+    const [jobIds, setJobIds] = useState<string[]>([]);
+    const [selectedGoal, setSelectedGoal] = useState(GOALS[0]);
+    const [selectedTime, setSelectedTime] = useState(TIME_OPTIONS[1]);
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    // Per-question upload state
+    const [file, setFile] = useState<File | null>(null);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [isDragging, setIsDragging] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showConfirm, setShowConfirm] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+    const resetUploadState = () => {
+        setFile(null);
+        setPreviewUrl(null);
+        setIsDragging(false);
+        setIsSubmitting(false);
+        setShowConfirm(false);
+        if (fileInputRef.current) fileInputRef.current.value = "";
     };
 
-    return (
-        <div className={`ap-page ${playfair.variable} ${dmSans.variable}`}>
-            <div className="ap-left">
-                <Link href="/" className="ap-logo">Atelier<span>.</span></Link>
-                <div className="ap-left-body">
-                    <p className="ap-eyebrow">Getting started</p>
-                    <h2 className="ap-headline">
-                        Let&apos;s build your<br /><em>lesson plan.</em>
-                    </h2>
-                    <p className="ap-desc">
-                        Tell us what you want to learn and we&apos;ll generate a personalized curriculum just for you.
-                    </p>
+    const processFile = (f: File) => {
+        setFile(f);
+        setPreviewUrl(URL.createObjectURL(f));
+    };
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const f = e.target.files?.[0];
+        if (f) processFile(f);
+    };
+
+    const handleDrop = (e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragging(false);
+        const f = e.dataTransfer.files?.[0];
+        if (f) processFile(f);
+    };
+
+    const handleQuestionSubmit = async () => {
+        if (!file || isSubmitting || typeof currentStep !== "number") return;
+        setIsSubmitting(true);
+
+        const question = QUESTIONS[currentStep - 1];
+        const formData = new FormData();
+        formData.append("image", file);
+
+        try {
+            const { job_id } = await submitPretestImage(formData, question.assignment);
+            const newJobIds = [...jobIds, job_id];
+            setJobIds(newJobIds);
+
+            // Brief confirmation then advance
+            setShowConfirm(true);
+            setTimeout(() => {
+                resetUploadState();
+                if (currentStep < 4) {
+                    setCurrentStep((currentStep + 1) as Step);
+                } else {
+                    setCurrentStep("preferences");
+                }
+            }, 800);
+        } catch {
+            setIsSubmitting(false);
+            setError("Failed to submit image. Please try again.");
+        }
+    };
+
+    const handleFinalSubmit = async () => {
+        setIsGenerating(true);
+        setError(null);
+        setCurrentStep("loading");
+
+        try {
+            await resolveAllPretestScores(jobIds, selectedGoal, selectedTime);
+            router.push("/dashboard");
+        } catch {
+            setIsGenerating(false);
+            setError("Something went wrong while building your plan. Please try again.");
+            setCurrentStep("preferences");
+        }
+    };
+
+    const handleRetryFromLoading = async () => {
+        setError(null);
+        setIsGenerating(true);
+        setCurrentStep("loading");
+
+        try {
+            await resolveAllPretestScores(jobIds, selectedGoal, selectedTime);
+            router.push("/dashboard");
+        } catch {
+            setIsGenerating(false);
+            setError("Something went wrong while building your plan. Please try again.");
+            setCurrentStep("preferences");
+        }
+    };
+
+    if (currentStep === "loading") {
+        return (
+            <div className={styles.outer}>
+                <div className={`${styles.loadingPage} ${playfair.variable} ${dmSans.variable}`}>
+                    {error ? (
+                        <div className={styles.errorBox}>
+                            <div className={styles.errorText}>{error}</div>
+                            <button className={styles.btnRetry} onClick={handleRetryFromLoading}>
+                                Try again
+                            </button>
+                        </div>
+                    ) : (
+                        <>
+                            <div className={styles.spinner} />
+                            <div className={styles.loadingTitle}>
+                                Analyzing your drawings and<br />building your personalized plan...
+                            </div>
+                            <div className={styles.loadingSubtitle}>
+                                This may take a minute or two.
+                            </div>
+                        </>
+                    )}
                 </div>
-                <p className="ap-left-footer" />
             </div>
+        );
+    }
 
-            <div className="ap-right">
-                <div className="ap-form-header">
-                    <h2>Your preferences</h2>
+    if (currentStep === "preferences") {
+        return (
+            <div className={styles.outer}>
+                <div className={`${styles.page} ${playfair.variable} ${dmSans.variable}`}>
+                    <div className={styles.stepIndicator}>&mdash; Almost done</div>
+                    <div className={styles.title}>Set your goals</div>
+                    <div className={styles.divider} />
+
+                    <div className={styles.prefsIntro}>
+                        Great work completing the assessment! Now tell us what you&apos;d like to focus
+                        on and how much time you can commit each day.
+                    </div>
+
+                    <div className={styles.formGroup}>
+                        <label htmlFor="pretest-goal">Learning goal</label>
+                        <select
+                            id="pretest-goal"
+                            value={selectedGoal}
+                            onChange={(e) => setSelectedGoal(e.target.value)}
+                        >
+                            {GOALS.map((g) => (
+                                <option key={g} value={g}>{g}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className={styles.formGroup}>
+                        <label htmlFor="pretest-time">Daily time commitment</label>
+                        <select
+                            id="pretest-time"
+                            value={selectedTime}
+                            onChange={(e) => setSelectedTime(e.target.value)}
+                        >
+                            {TIME_OPTIONS.map((t) => (
+                                <option key={t} value={t}>{t}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {error && (
+                        <div className={styles.errorBox} style={{ marginBottom: 20 }}>
+                            <div className={styles.errorText}>{error}</div>
+                        </div>
+                    )}
+
+                    <div className={styles.submitRow}>
+                        <button
+                            className={styles.btnPrimary}
+                            onClick={handleFinalSubmit}
+                            disabled={isGenerating}
+                            style={{ opacity: isGenerating ? 0.45 : 1 }}
+                        >
+                            {isGenerating ? "Generating..." : "Generate my plan"}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+
+    const question = QUESTIONS[currentStep - 1];
+
+    return (
+        <div className={styles.outer}>
+            <div className={`${styles.page} ${playfair.variable} ${dmSans.variable}`}>
+                <div className={styles.stepIndicator}>
+                    &mdash; Question {currentStep} of 4
+                </div>
+                <div className={styles.title}>{question.title}</div>
+                <div className={styles.divider} />
+
+                <div className={styles.sectionLabel}>Reference</div>
+                <img
+                    src={question.image}
+                    alt={`${question.title} reference`}
+                    className={styles.referenceImage}
+                />
+
+                <div className={styles.sectionLabel}>Instructions</div>
+                <div className={styles.instructionText}>{question.instruction}</div>
+
+                <div className={styles.sectionLabel}>Submit your work</div>
+                <div
+                    className={`${styles.dropzone} ${isDragging ? styles.dropzoneDragging : ""} ${file ? styles.dropzoneHasFile : ""}`}
+                    onClick={() => fileInputRef.current?.click()}
+                    onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                    onDragLeave={() => setIsDragging(false)}
+                    onDrop={handleDrop}
+                >
+                    <input
+                        key={currentStep}
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        className={styles.hiddenInput}
+                        onChange={handleInputChange}
+                    />
+                    <div className={styles.uploadIcon}>
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#888780" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                            <polyline points="17 8 12 3 7 8" />
+                            <line x1="12" y1="3" x2="12" y2="15" />
+                        </svg>
+                    </div>
+                    {previewUrl ? (
+                        <>
+                            <img src={previewUrl} alt="Preview" className={styles.preview} />
+                            <div className={styles.uploadSub}>Click to change image</div>
+                        </>
+                    ) : (
+                        <>
+                            <div className={styles.uploadMain}>Upload your drawing</div>
+                            <div className={styles.uploadSub}>Click to select or drag and drop</div>
+                        </>
+                    )}
                 </div>
 
-                <form className="ap-form" onSubmit={handleSubmit}>
-                    <div className="ap-form-group">
-                        <label htmlFor="setup-topic">What do you want to learn?</label>
-                        <input
-                            type="text"
-                            id="setup-topic"
-                            placeholder="e.g. manga, realism, portraits…"
-                            value={topic}
-                            onChange={(e) => { setTopic(e.target.value); setTopicError(""); }}
-                            className={topicError ? "ap-input-error" : ""}
-                        />
-                        {topicError && <span className="ap-field-error">{topicError}</span>}
-                    </div>
+                {showConfirm && <div className={styles.confirmToast}>Submitted! On to the next one.</div>}
 
-                    <div className="ap-form-group">
-                        <label htmlFor="setup-time">Daily time commitment</label>
-                        <select
-                            id="setup-time"
-                            value={timeCommit}
-                            onChange={(e) => setTimeCommit(e.target.value)}
-                        >
-                            <option>15 minutes</option>
-                            <option>30 minutes</option>
-                            <option>1 hour</option>
-                            <option>2 hours</option>
-                        </select>
+                {error && !showConfirm && (
+                    <div className={styles.errorBox} style={{ marginTop: 12 }}>
+                        <div className={styles.errorText}>{error}</div>
                     </div>
+                )}
 
-                    <div className="ap-form-group">
-                        <label htmlFor="setup-skill">Skill level</label>
-                        <select
-                            id="setup-skill"
-                            value={skillLevel}
-                            onChange={(e) => setSkillLevel(e.target.value)}
-                        >
-                            <option>Beginner</option>
-                            <option>Intermediate</option>
-                            <option>Advanced</option>
-                        </select>
-                    </div>
-
-                    <button type="submit" className="ap-btn-submit">Generate My Plan</button>
-                </form>
+                <div className={styles.submitRow}>
+                    <button
+                        className={styles.btnPrimary}
+                        disabled={!file || isSubmitting}
+                        style={{ opacity: file && !isSubmitting ? 1 : 0.45 }}
+                        onClick={handleQuestionSubmit}
+                    >
+                        {isSubmitting ? "Submitting..." : currentStep < 4 ? "Submit & continue" : "Submit"}
+                    </button>
+                </div>
             </div>
         </div>
     );

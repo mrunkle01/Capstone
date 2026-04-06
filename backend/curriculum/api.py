@@ -3,13 +3,13 @@ from ninja.files import UploadedFile
 from ninja.security import SessionAuth
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from .tasks import generate_dashboard_task, grade_user_art
+from .tasks import generate_dashboard_task, generate_pretest_dashboard_task, grade_user_art
 from .models import UserProfile, ConceptLibrary, Section, Assessment, ReportCard, DashBoard, GradeReport
 from .schemas import (RegisterSchema, UpdateProfileSchema, LearningGoalSchema,
                       PretestResultSchema, PretestQuestionSchema,PretestQuestionOptionSchema,
                       SectionSchema, LessonSchema, UserLessonSchema, AssessmentSchema,
                       ReportCardSchema, ChatLogSchema, UserInSchema, LogResultsSchema,
-                      ProgressSchema)
+                      ProgressSchema, PretestGenerateSchema)
 
 
 
@@ -212,6 +212,22 @@ def check_submit_assessment(request, job_id: str):
 @api.get("/generate")
 def start_generate(request, topic: str, timeCommit: str, skillLevel: str, amount: int = 3):
     task = generate_dashboard_task.delay(topic, timeCommit, skillLevel, amount)
+    return {"job_id": task.id}
+
+@api.post("/generate/pretest")
+def start_pretest_generate(request, data: PretestGenerateSchema):
+    task = generate_pretest_dashboard_task.delay(
+        data.pretest_scores.dict(), data.goal, data.time_commitment
+    )
+
+    # Update user profile if authenticated
+    if request.user.is_authenticated:
+        profile = request.user.profile
+        profile.artistic_goal = data.goal
+        profile.time_commitment = data.time_commitment
+        profile.has_completed_pretest = True
+        profile.save()
+
     return {"job_id": task.id}
 
 @api.get("/generate/status/{job_id}")
