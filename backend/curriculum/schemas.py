@@ -93,7 +93,6 @@ class ProgressSchema(Schema):
     assessmentReportId: Optional[int] = None
     assessmentScore: Optional[int] = None
 
-
 class PretestScoresSchema(Schema):
     gesture: dict
     lifeDrawing: dict
@@ -105,3 +104,10 @@ class PretestGenerateSchema(Schema):
     pretest_scores: PretestScoresSchema
     goal: str
     time_commitment: str
+
+#only for updating the individual attribvutes
+class UpdateAttributesSchema(Schema):
+    gesture: float
+    lifeDrawing: float
+    stillLife: float
+    thumbnail: float

@@ -6,10 +6,10 @@ from django.contrib.auth.models import User
 from .tasks import generate_dashboard_task, generate_pretest_dashboard_task, grade_user_art
 from .models import UserProfile, ConceptLibrary, Section, Assessment, ReportCard, DashBoard, GradeReport
 from .schemas import (RegisterSchema, UpdateProfileSchema, LearningGoalSchema,
-                      PretestResultSchema, PretestQuestionSchema,PretestQuestionOptionSchema,
+                      PretestResultSchema, PretestQuestionSchema, PretestQuestionOptionSchema,
                       SectionSchema, LessonSchema, UserLessonSchema, AssessmentSchema,
                       ReportCardSchema, ChatLogSchema, UserInSchema, LogResultsSchema,
-                      ProgressSchema, PretestGenerateSchema)
+                      ProgressSchema, PretestGenerateSchema, UpdateAttributesSchema)
 
 
 
@@ -222,9 +222,14 @@ def start_pretest_generate(request, data: PretestGenerateSchema):
 
     # Update user profile if authenticated
     if request.user.is_authenticated:
+        scoresDict = data.pretest_scores.dict()
         profile = request.user.profile
         profile.artistic_goal = data.goal
         profile.time_commitment = data.time_commitment
+        profile.gesture = scoresDict.get('gesture', {}).get('score', 0)
+        profile.lifeDrawing = scoresDict.get('lifeDrawing', {}).get('score', 0)
+        profile.stillLife = scoresDict.get('stillLife', {}).get('score', 0)
+        profile.thumbnail = scoresDict.get('thumbnail', {}).get('score', 0)
         profile.has_completed_pretest = True
         profile.save()
 
@@ -321,10 +326,25 @@ def update_user_info(request, userInfo: UpdateProfileSchema):
     request.user.profile.skill_level = userInfo.skill_level
     request.user.profile.artistic_goal = userInfo.artistic_goal
     request.user.profile.save()
+    return 200
 
-#this endpoint grabs the results after a user assessment and updates/saves each skill based on different criteria
-@api.post("/logResults")
-def log_results(request, results : LogResultsSchema):
-    if (results.skill1 == 4):
-        request.user.profile.skill_level = UserProfile.skill_levels.get(skill=results.skill1)
+#grab the users scores for each individual attributes: gesture, lifeDrawing, stillLife, thumbnail returns int
+@api.get("/attributes")
+def get_attributes(request):
+    return 200, {
+        "gesture" : request.user.profile.gesture,
+        "lifeDrawing" : request.user.profile.lifeDrawing,
+        "stillLife" : request.user.profile.stillLife,
+        "thumbnail" : request.user.profile.thumbnail,
+    }
+
+@api.put("/attributes")
+def update_attributes(request, attributes: UpdateAttributesSchema):
+    if not request.user.is_authenticated:
+        return 401, {"message": "Not authenticated"}
+    request.user.profile.gesture = attributes.gesture
+    request.user.profile.lifeDrawing = attributes.lifeDrawing
+    request.user.profile.stillLife = attributes.stillLife
+    request.user.profile.thumbnail = attributes.thumbnail
     request.user.profile.save()
+    return 200

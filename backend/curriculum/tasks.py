@@ -31,6 +31,8 @@ def generate_pretest_dashboard_task(self, pretest_scores, goal, time_commitment)
         pretest_scores.get('thumbnail', {}).get('score', 0),
     ]
 
+
+
     print(f"[Pretest Scores] Gesture: {scores[0]} | Life Drawing: {scores[1]} | Still Life: {scores[2]} | Thumbnail: {scores[3]}")
 
     avg = sum(scores) / len(scores) if scores else 0
