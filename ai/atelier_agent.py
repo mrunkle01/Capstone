@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from pydantic import BaseModel
 from ollama import Client, WebSearchResponse, WebFetchResponse, ChatResponse
 import chromadb
+import datetime
 
 
 class LessonContent(BaseModel):
@@ -109,17 +110,20 @@ class AtelierClient:
         self.memory = AgentMemory(self.__id_ref)
         # Establish AI properties
         self.__tool_lookup = {'web_search': self.__client.web_search, 'store_memory': self.memory.store_memory,
-                              'retrieve_memory': self.memory.retrieve_memory}
-        self.__tools = [self.memory.store_memory, self.memory.retrieve_memory, self.__client.web_search]
+                              'retrieve_memory': self.memory.retrieve_memory,
+                              'append_instr_file': self.__append_instr_file}
+        self.__tools = [self.memory.store_memory, self.memory.retrieve_memory, self.__client.web_search,
+                        self.__append_instr_file]
         with open('personality.txt', 'r') as file:
             pers_data = file.read()
+        file.close()
         self.__personality = {'role': 'system', 'content': pers_data}
         self.__messages = []
         self.__messages.append(self.__personality)
         self.__messages.append({'role': 'system', 'content': f"The user's username is {user_id}"}) # Replace with user info fetch
         self.__initialize_context(["Art Interests", "Goals", "Favorite Art", "Career", user_id])
         self.__options = {
-            'temperature': 0.8
+            'temperature': 0.8,
         }
         self.__conv_turns = 0
         self.__mem_freq = 5
@@ -163,7 +167,7 @@ class AtelierClient:
         if self.__conv_turns < self.__mem_freq:
             self.__conv_turns += 1
             return
-        self.__messages.append({'role': 'user', 'content': f"Summarize the conversation thus far in your point of view."})
+        self.__messages.append({'role': 'user', 'content': f"Summarize the conversation thus far."}) # Feed only the last few messages
         print("Saving summary...")
         res = self.__client.chat(
             model='qwen3.5:397b-cloud',
@@ -201,6 +205,13 @@ class AtelierClient:
         results = self.memory.retrieve_memory(queries, par)
         self.__messages.append({'role': 'system', 'content': str(results)})
 
+    def __append_instr_file(self, instr: str):
+        """
+        instr: string to append to instructions file
+        """
+        with open("personality.txt", "a") as file:
+            file.write(instr)
+
     def grade_art(self, assignment: str, img: bytes) -> Grade:
         # model = 'qwen3-vl:235b-cloud'
         model = 'qwen3.5:397b-cloud'
@@ -215,8 +226,8 @@ class AtelierClient:
         instructions = {'role': 'user', 'content': file_data, 'images': [img_final]}
         response = self.__generate(model, instructions, Grade.model_json_schema())
         grade: Grade = Grade.model_validate_json(response.message.content)
-        self.memory.store_memory([f"Assignment: {assignment} Grade: {grade.to_string()}"],
-                                 {"type": "assessment"})
+        # self.memory.store_memory([f"Assignment: {assignment} Grade: {grade.to_string()}"],
+        #                          {"type": "assessment"})
 
         return grade
 
@@ -235,8 +246,8 @@ class AtelierClient:
         instructions = {'role': 'user', 'content': file_data, 'images': [img_final, ref_final]}
         response = self.__generate(model, instructions, Grade.model_json_schema())
         grade: Grade = Grade.model_validate_json(response.message.content)
-        self.memory.store_memory([f"Assignment: {assignment} Grade: {grade.to_string()}"],
-                                 {"type": "assessment"})
+        # self.memory.store_memory([f"Assignment: {assignment} Grade: {grade.to_string()}"],
+        #                          {"type": "assessment"})
 
         return grade
 
@@ -255,7 +266,7 @@ class AtelierClient:
         instructions = {'role': 'user', 'content': file_data}
         response = self.__generate(model, instructions, LessonPlan.model_json_schema())
         lesson_plan: LessonPlan = LessonPlan.model_validate_json(response.message.content)
-        self.memory.store_memory([lesson_plan.to_string()], {"type": "lesson_plan"})
+        # self.memory.store_memory([lesson_plan.to_string()], {"type": "lesson_plan"})
         # Verify lesson time and assessment points
 
         return lesson_plan
@@ -280,6 +291,8 @@ class AgentMemory:
             texts: List of text representing memories to store
             metadata: Dictionary of metadata associated with the batch of memory entries
         """
+        # handle single string
+        # list of metadata associated with texts in same index
         metadata_list = []
         for t in texts:
             def_dict = {"user_id": self.__user_id}
@@ -304,13 +317,13 @@ class AgentMemory:
             ids=doc_ids
         )
 
-        print(f"Pikaso remembered: {texts[:50]}...")
+        print(f"Pikaso remembered: {texts}...")
         return f"Remembered {texts}"
 
     def retrieve_memory(self, queries: list[str], par: list[dict] = None, n_results: int = 20) -> str:
         """Retrieve the n most relevant memories for a query
         Args:
-            queries: List of strings to embed and use to search memory database
+            queries: List of strings list[str] to embed and use to search memory database
             par: List of metadata to filter search results by (query must meet all criteria.) Optional parameter.
             n_results: Amount of results to retrieve from memory
 
@@ -343,8 +356,8 @@ class AgentMemory:
         memories = ""
         if results['documents']:
             for doc in results['documents'][0]:
-                memories += doc + ". "
+                memories += doc + " ."
 
-        print(f"Pikaso recalled: {memories[:150]}...")
+        print(f"Pikaso recalled: {memories}...")
 
         return memories

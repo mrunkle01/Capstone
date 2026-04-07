@@ -44,23 +44,25 @@ async def main():
     client = AtelierClient("thinknot")
     print(client.inst)
 
-    # img = Path("eye_drawing.jpg").read_bytes()
+    # img = Path("20260407_102616.jpg").read_bytes()
     # assignment = """
-    # Demonstrate an understanding of the anatomy of the eye and your ability to use value to render its form.
+    # Mini Still Life
+    # User Prompt: An object in perspective
+    # User Submission: The object in an accurate recreation of perspective, proper orientation, and with light and shadow.
     # Requirements:
-    # Form - 5pts
-    # Anatomy - 3pts
-    # Value - 3pts
+    # Perspective (Lines convey a consistent perspective) - 3 pts
+    # Value (Rendering of the object with light and shadow) - 4 pts
+    # Form (Volume and depth of the object) - 5 pts
     # """
     # grade: atelier_agent.Grade = client.grade_art(assignment, img)
     # write_grade_to_file(grade)
-    #
+
     # lesson_plan: atelier_agent.LessonPlan = client.generate_lesson_plan("Figure Drawing", "1hr", "Novice")
     # write_plan_to_file(lesson_plan)
     #
     # lesson_plan: atelier_agent.LessonPlan = client.generate_lesson_plan("Manga", "1hr", "Intermediate")
     # write_plan_to_file(lesson_plan)
-
+    #
     uin = input("You: ")
     while uin != "-1":
         res = await client.async_chat(uin)
