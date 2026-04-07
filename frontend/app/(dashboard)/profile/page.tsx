@@ -4,6 +4,16 @@ import { useEffect, useState } from "react";
 import { loadUser } from "@/lib/api/profile";
 import { User } from "@/lib/types/profile";
 
+const SKILL_DISPLAY: Record<string, string> = {
+    beginner: "Beginner",
+    "beginner-intermediate": "Beginner–Intermediate",
+    intermediate: "Intermediate",
+    "intermediate-advanced": "Intermediate–Advanced",
+    advanced: "Advanced",
+    "advanced-expert": "Advanced",
+    expert: "Expert",
+};
+
 export default function Profile() {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
@@ -64,7 +74,7 @@ export default function Profile() {
                 </div>
                 <div className="d-profile-row">
                     <span className="d-profile-field">Skill level</span>
-                    <span className="d-profile-value">{user?.skill_level ?? "—"}</span>
+                    <span className="d-profile-value">{user?.skill_level ? (SKILL_DISPLAY[user.skill_level] ?? user.skill_level) : "—"}</span>
                 </div>
                 <div className="d-profile-row">
                     <span className="d-profile-field">Daily time</span>

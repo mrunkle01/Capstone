@@ -30,6 +30,9 @@ def generate_pretest_dashboard_task(self, pretest_scores, goal, time_commitment)
         pretest_scores.get('stillLife', {}).get('score', 0),
         pretest_scores.get('thumbnail', {}).get('score', 0),
     ]
+
+    print(f"[Pretest Scores] Gesture: {scores[0]} | Life Drawing: {scores[1]} | Still Life: {scores[2]} | Thumbnail: {scores[3]}")
+
     avg = sum(scores) / len(scores) if scores else 0
 
     if avg >= 90:
@@ -50,6 +53,7 @@ def generate_pretest_dashboard_task(self, pretest_scores, goal, time_commitment)
     client = AtelierClient()
     sectionJSON = client.generate_lesson_plan(goal, time_commitment, skill, 3)
     return {
+        "skill_level": skill,
         "Section": sectionJSON.section,
         "Lessons": [{"title": l.title, "content": {"time": l.content.time,
                                                     "skill": l.content.skill,

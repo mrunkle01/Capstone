@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Playfair_Display, DM_Sans } from "next/font/google";
 import { submitPretestImage, resolveAllPretestScores } from "@/lib/api/pretest";
+import { updateProfile } from "@/lib/api/profile";
 import styles from "./pretest.module.css";
 
 const playfair = Playfair_Display({
@@ -78,7 +79,38 @@ const TIME_OPTIONS = [
     "2+ hours",
 ];
 
-type Step = 1 | 2 | 3 | 4 | "preferences" | "loading";
+type Step = 1 | 2 | 3 | 4 | "preferences" | "loading" | "results";
+
+const SKILL_LABELS: Record<string, string> = {
+    expert: "Expert",
+    "advanced-expert": "Advanced",
+    advanced: "Advanced",
+    "intermediate-advanced": "Intermediate–Advanced",
+    intermediate: "Intermediate",
+    "beginner-intermediate": "Beginner–Intermediate",
+    beginner: "Beginner",
+};
+
+function computeSkillLevel(pretestScores: Record<string, { score?: number }>): { key: string; label: string; avg: number } {
+    const scores = [
+        pretestScores.gesture?.score ?? 0,
+        pretestScores.lifeDrawing?.score ?? 0,
+        pretestScores.stillLife?.score ?? 0,
+        pretestScores.thumbnail?.score ?? 0,
+    ];
+    const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+
+    let key: string;
+    if (avg >= 90) key = "expert";
+    else if (avg >= 85) key = "advanced-expert";
+    else if (avg >= 80) key = "advanced";
+    else if (avg >= 70) key = "intermediate-advanced";
+    else if (avg >= 50) key = "intermediate";
+    else if (avg >= 30) key = "beginner-intermediate";
+    else key = "beginner";
+
+    return { key, label: SKILL_LABELS[key], avg: Math.round(avg) };
+}
 
 export default function PretestPage() {
     const router = useRouter();
@@ -89,6 +121,7 @@ export default function PretestPage() {
     const [selectedTime, setSelectedTime] = useState(TIME_OPTIONS[1]);
     const [isGenerating, setIsGenerating] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [skillResult, setSkillResult] = useState<{ key: string; label: string; avg: number } | null>(null);
 
     // Per-question upload state
     const [file, setFile] = useState<File | null>(null);
@@ -159,8 +192,11 @@ export default function PretestPage() {
         setCurrentStep("loading");
 
         try {
-            await resolveAllPretestScores(jobIds, selectedGoal, selectedTime);
-            router.push("/dashboard");
+            const { pretestScores } = await resolveAllPretestScores(jobIds, selectedGoal, selectedTime);
+            const skill = computeSkillLevel(pretestScores);
+            setSkillResult(skill);
+            updateProfile({ skill_level: skill.key, artistic_goal: selectedGoal, time_commitment: selectedTime }).catch(() => {});
+            setCurrentStep("results");
         } catch {
             setIsGenerating(false);
             setError("Something went wrong while building your plan. Please try again.");
@@ -174,8 +210,11 @@ export default function PretestPage() {
         setCurrentStep("loading");
 
         try {
-            await resolveAllPretestScores(jobIds, selectedGoal, selectedTime);
-            router.push("/dashboard");
+            const { pretestScores } = await resolveAllPretestScores(jobIds, selectedGoal, selectedTime);
+            const skill = computeSkillLevel(pretestScores);
+            setSkillResult(skill);
+            updateProfile({ skill_level: skill.key, artistic_goal: selectedGoal, time_commitment: selectedTime }).catch(() => {});
+            setCurrentStep("results");
         } catch {
             setIsGenerating(false);
             setError("Something went wrong while building your plan. Please try again.");
@@ -205,6 +244,44 @@ export default function PretestPage() {
                             </div>
                         </>
                     )}
+                </div>
+            </div>
+        );
+    }
+
+    if (currentStep === "results" && skillResult) {
+        return (
+            <div className={styles.outer}>
+                <div className={`${styles.resultsPage} ${playfair.variable} ${dmSans.variable}`}>
+                    <div className={styles.resultsIcon}>
+                        <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="#B8A050" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                            <polyline points="22 4 12 14.01 9 11.01" />
+                        </svg>
+                    </div>
+                    <div className={styles.resultsTitle}>Assessment Complete</div>
+                    <div className={styles.resultsSubtitle}>
+                        Based on your drawings, we&apos;ve determined your current skill level.
+                    </div>
+
+                    <div className={styles.skillCard}>
+                        <div className={styles.skillLabel}>Your skill level</div>
+                        <div className={styles.skillLevel}>{skillResult.label}</div>
+                        <div className={styles.skillScore}>Overall score: {skillResult.avg}%</div>
+                    </div>
+
+                    <div className={styles.resultsNote}>
+                        Your personalized learning plan has been built around this level.
+                        Lessons will adapt as you improve.
+                    </div>
+
+                    <button
+                        className={styles.btnPrimary}
+                        onClick={() => router.push("/dashboard")}
+                        style={{ width: "100%" }}
+                    >
+                        Go to Dashboard
+                    </button>
                 </div>
             </div>
         );
@@ -271,13 +348,14 @@ export default function PretestPage() {
     }
 
 
-    const question = QUESTIONS[currentStep - 1];
+    const step = currentStep as number;
+    const question = QUESTIONS[step - 1];
 
     return (
         <div className={styles.outer}>
             <div className={`${styles.page} ${playfair.variable} ${dmSans.variable}`}>
                 <div className={styles.stepIndicator}>
-                    &mdash; Question {currentStep} of 4
+                    &mdash; Question {step} of 4
                 </div>
                 <div className={styles.title}>{question.title}</div>
                 <div className={styles.divider} />
@@ -343,7 +421,7 @@ export default function PretestPage() {
                         style={{ opacity: file && !isSubmitting ? 1 : 0.45 }}
                         onClick={handleQuestionSubmit}
                     >
-                        {isSubmitting ? "Submitting..." : currentStep < 4 ? "Submit & continue" : "Submit"}
+                        {isSubmitting ? "Submitting..." : step < 4 ? "Submit & continue" : "Submit"}
                     </button>
                 </div>
             </div>
