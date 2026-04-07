@@ -251,6 +251,10 @@ def check_generate(request, job_id: str):
                     order=next_order,
                     task_id=job_id,
                 )
+        
+            if task.result.get("skill_level"):
+                request.user.profile.skill_level = task.result["skill_level"]
+                request.user.profile.save()
         return {"status": "complete", "data": task.result}
     elif task.state == "FAILURE":
         return {"status": "error", "error": str(task.result)}

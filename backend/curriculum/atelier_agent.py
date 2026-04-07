@@ -14,7 +14,7 @@ class LessonContent(BaseModel):
     time: int
     skill: str  # Enum maybe?
     directions: str
-    exercises: list[str]  # Exercise their own object maybe
+    exercises: list[str] = []  
 
 
 class Lesson(BaseModel):
@@ -82,7 +82,7 @@ class AtelierClient:
         self.__tools = [self.__client.web_search]
         with open(personality_path, 'r') as file:
             pers_data = file.read()
-        print(pers_data)
+        # print(pers_data)
         self.__personality = {'role': 'system', 'content': pers_data}
         self.__messages = []
         self.__messages.append(self.__personality)
@@ -93,27 +93,27 @@ class AtelierClient:
     def __generate(self, model: str, instr, form) -> ChatResponse:
         self.__messages.append(instr)
 
-        print("Initial Response\n")
+        # print("Initial Response\n")
         res = self.__client.chat(model=model, messages=self.__messages, tools=self.__tools,
                                  think=True, options=self.__options)
 
         if res.message.tool_calls:
-            print("Tool Calls: ", res.message.tool_calls)
+            # print("Tool Calls: ", res.message.tool_calls)
             for tool_call in res.message.tool_calls:
                 func = self.__available_tools.get(tool_call.function.name)
                 if func:
                     args = tool_call.function.arguments
                     result = func(**args)
-                    print('Result: ', str(result)[:200]+'...')
+                    # print('Result: ', str(result)[:200]+'...')
                     self.__messages.append({'role': 'tool', 'content': str(result)[:2000 * 4],
                                             'tool_name': tool_call.function.name})
 
-        print("Informed Response\n")
+        # print("Informed Response\n")
 
         informed_res = self.__client.chat(model=model, messages=self.__messages, format=form,
                                           think=False, options=self.__options)
-        print(informed_res.message.thinking)
-        print(informed_res.message.content)
+        # print(informed_res.message.thinking)
+        # print(informed_res.message.content)
         return informed_res
 
     def __fetch_user_info(self, url) -> WebFetchResponse:
@@ -130,7 +130,7 @@ class AtelierClient:
 
         file_data = file_data.replace('{assignment}', assignment)
 
-        print(file_data)
+        # print(file_data)
 
         instructions = {'role': 'user', 'content': file_data, 'images': [img_final]}
 
@@ -151,7 +151,7 @@ class AtelierClient:
         file_data = file_data.replace('{skill}', skill)
         file_data = file_data.replace('{amount}', str(amount))
 
-        print(file_data)
+        # print(file_data)
 
         instructions = {'role': 'user', 'content': file_data}
 

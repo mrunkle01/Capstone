@@ -41,7 +41,8 @@ export async function resolveAllPretestScores(
     jobIds: string[],
     goal: string,
     timeCommitment: string
-): Promise<Record<string, unknown>> {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+): Promise<{ dashboard: Record<string, unknown>; pretestScores: Record<string, any> }> {
     // Poll all 4 jobs in at same time
     const results = await Promise.all(jobIds.map((id) => pollGradingJob(id)));
 
@@ -74,7 +75,7 @@ export async function resolveAllPretestScores(
         if (!poll.ok) throw new Error("Failed to check generation status");
 
         const job = await poll.json();
-        if (job.status === "complete") return job.data;
+        if (job.status === "complete") return { dashboard: job.data, pretestScores };
         if (job.status === "error") throw new Error(job.error || "Dashboard generation failed");
         // status === "pending" — keep polling
     }
