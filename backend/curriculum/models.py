@@ -49,7 +49,6 @@ class UserProfile(models.Model):
     has_completed_pretest = models.BooleanField(default=False)
     has_active_curriculum = models.BooleanField(default=False)
 
-    # New fields from schema
     goal = models.ForeignKey(
         LearningGoal,
         on_delete=models.SET_NULL,
