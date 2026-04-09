@@ -31,8 +31,6 @@ export default function ResultPage() {
             .then(({ result: r, imageUrl: img }) => {
                 setResult(r);
                 setImageUrl(img);
-
-                // Save assessment completion to dashboard progress
                 loadDashboard().then((sections) => {
                     if (!sections || sections.length === 0) return;
                     const latest = sections[sections.length - 1];
@@ -73,7 +71,7 @@ export default function ResultPage() {
             await generateSections(
                 {
                     topic,
-                    timeCommit: profile.time_commitment || "regular",
+                    timeCommit: profile.time_commitment || "1 hr",
                     skillLevel: profile.skill_level || "beginner",
                 },
                 amount,
