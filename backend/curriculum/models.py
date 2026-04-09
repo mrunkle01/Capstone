@@ -29,10 +29,10 @@ class UserProfile(models.Model):
         default='beginner',
     )
     #attributes
-    gesture = models.FloatField(null=True, blank=True)
-    lifeDrawing = models.FloatField(null=True, blank=True)
-    stillLife = models.FloatField(null=True, blank=True)
-    thumbnail = models.FloatField(null=True, blank=True)
+    gesture = models.FloatField(default=0)
+    lifeDrawing = models.FloatField(default=0)
+    stillLife = models.FloatField(default=0)
+    thumbnail = models.FloatField(default=0)
 
     artistic_goal = models.TextField(blank=True)
     time_commitment = models.CharField(
