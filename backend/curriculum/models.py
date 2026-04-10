@@ -30,8 +30,8 @@ class UserProfile(models.Model):
     )
     #attributes
     gesture = models.FloatField( default =0)
-    lifeDrawing = models.FloatField(default=0)
-    stillLife = models.FloatField(default=0)
+    lifedrawing = models.FloatField(default=0)
+    stilllife = models.FloatField(default=0)
     thumbnail = models.FloatField( default=0)
 
     artistic_goal = models.TextField(blank=True)
