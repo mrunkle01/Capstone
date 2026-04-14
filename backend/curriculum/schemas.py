@@ -47,10 +47,8 @@ class SectionSchema(Schema):
 
 
 class LessonSchema(Schema):
-    id: int
     title: str
-    content: str
-    image_url: str
+    content: list
     order: int
 
 
