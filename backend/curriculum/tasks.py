@@ -1,5 +1,5 @@
 from celery import shared_task
-from .atelier_agent import AtelierClient
+from .atelier_agent_old import AtelierClient
 
 
 
