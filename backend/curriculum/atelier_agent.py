@@ -275,6 +275,36 @@ class AtelierClient:
 
         return lesson_plan
 
+    def generate_lesson(self, topic: str, time_commit: str, skill: str):
+        model = 'qwen3.5:397b-cloud'
+        # self.__initialize_context([
+        #     {
+        #         "query": f"{self.__id_ref}'s skill in {topic}",
+        #         "metadata": [{"skill": topic}]
+        #     }
+        # ])
+        # self.__initialize_context([
+        #     {
+        #         "query": f"What is {self.__id_ref}'s goals?",
+        #         "metadata": [{"type": "goal"}]
+        #     }
+        # ])
+
+        with open('lesson_plan_instructions', 'r') as file:
+            file_data = file.read()
+        file_data = file_data.replace('{topic}', topic)
+        file_data = file_data.replace('{time_commit}', time_commit)
+        file_data = file_data.replace('{skill}', skill)
+
+        instructions = {'role': 'user', 'content': file_data}
+        response = self.__generate(model, instructions, Lesson.model_json_schema())
+        try:
+            lesson: Lesson = Lesson.model_validate_json(response.message.content)
+            # Replace memory in storage
+            return lesson
+        except ValidationError as e:
+            print(e)
+
 
 class AgentMemory:
     def __init__(self, user: str, directory="./agent_memory"):

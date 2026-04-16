@@ -1,5 +1,5 @@
 from celery import shared_task
-from .atelier_agent_old import AtelierClient
+from .atelier_agent import AtelierClient
 
 
 
@@ -70,6 +70,22 @@ def generate_pretest_dashboard_task(self, pretest_scores, goal, time_commitment)
         "resources": [{"title": res.title, "url": res.url, "source": res.source} for res in sectionJSON.resources]
     }
 
+#Create task that grabs a newly generated lesson from the ai. this will be called by the chat bot
+@shared_task(bind=True)
+def generate_new_lesson(self, topic, timeCommit, skillLevel, amount=1):
+    client = AtelierClient()
+    lessonJSON = client.generate_lesson(topic, timeCommit, skillLevel, amount)
+    return {
+        "title": lessonJSON.title,
+        "content": {
+            "time": lessonJSON.content.time,
+            "skill": lessonJSON.content.skill,
+            "directions": lessonJSON.content.directions,
+            "exercises" : [e for e in lessonJSON.content.exercises]
+        },
+        "order": lessonJSON.content.order
+    }
+
 
 @shared_task(bind=True)
 def generate_dashboard_task(self, topic, timeCommit, skillLevel, amount=3):  # amount = number of lessons
@@ -89,37 +105,3 @@ def generate_dashboard_task(self, topic, timeCommit, skillLevel, amount=3):  # a
         },
         "resources" : [{"title" : res.title, "url" : res.url, "source" : res.source} for res in sectionJSON.resources]
     }
-
-# {
-#     "section": str,
-#     "lessons": [
-#         {
-#             "title": str,
-#             "content": {
-#                 "time": int
-#                 "skill": str
-#                 "directions": str
-#                 "exercises": list[str]
-#             },
-#             "order": int
-#         }
-#     ],
-#     assessment: {
-#         "title": str,
-#         "content": str,
-#         "requirements": [
-#                     {
-#                         "name": str,
-#                         "r_id": str,
-#                         "points": int,
-#                     }
-#         ]
-#     },
-#    "resources": [
-#         {
-#             "title": str
-#             "url": str
-#             "source": str
-#         }
-#    ]
-# }
