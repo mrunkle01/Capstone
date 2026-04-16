@@ -8,7 +8,7 @@ from ollama import Client, WebSearchResponse, WebFetchResponse, ChatResponse
 script_dir = os.path.dirname(os.path.abspath(__file__))
 personality_path = os.path.join(script_dir, "personality.txt")
 lesson_plan_path = os.path.join(script_dir, "lesson_plan_instructions.txt")
-art_grading_path = os.path.join(script_dir, "art_grading_instructions.txt.txt")
+art_grading_path = os.path.join(script_dir, "art_grading_instructions.txt")
 
 class LessonContent(BaseModel):
     time: int
@@ -141,7 +141,7 @@ class AtelierClient:
         return grade
 
     def generate_lesson_plan(self, topic: str, time_commit: str, skill: str, amount: int = 5) -> LessonPlan:
-        model = 'qwen3.5:397b-cloud'
+        model = 'qwen2.5:7b'
 
         with open(lesson_plan_path, 'r') as file:
             file_data = file.read()

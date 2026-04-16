@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Requirement } from "@/lib/types/dashboard";
 import { useDashboardContext } from "@/lib/context/DashboardContext";
 import ImageInput from "@/components/demo/ImageInput";
+import AssessmentLoading from "@/components/demo/AssessmentLoading";
 import styles from "./assessment.module.css";
 
 export default function AssessmentPage() {
@@ -22,6 +23,14 @@ export default function AssessmentPage() {
     }, [assessment, router]);
 
     if (!assessment) return null;
+
+    if (isSubmitting) {
+        return (
+            <div className={styles.page}>
+                <AssessmentLoading imageUrl={imageUrl} />
+            </div>
+        );
+    }
 
     return (
         <div className={styles.page}>
@@ -47,7 +56,12 @@ export default function AssessmentPage() {
             </div>
 
             <div className={styles.sectionLabel}>Submit your work</div>
-            <ImageInput setImageUrl={(url) => setImageUrl(url)} onFileSelected={setHasImage} submitRef={submitRef} />
+            <ImageInput
+                setImageUrl={(url) => setImageUrl(url)}
+                onFileSelected={setHasImage}
+                submitRef={submitRef}
+                onLoadingChange={setIsSubmitting}
+            />
 
             <div className={styles.submitRow}>
                 <button
@@ -56,7 +70,7 @@ export default function AssessmentPage() {
                     style={{ opacity: hasImage && !isSubmitting ? 1 : 0.45 }}
                     onClick={() => { setIsSubmitting(true); submitRef.current?.(); }}
                 >
-                    {isSubmitting ? "Submitting..." : "Submit for grading"}
+                    Submit for grading
                 </button>
             </div>
         </div>

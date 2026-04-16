@@ -1,15 +1,18 @@
 Can you grade my performance drawing this image according to the following assignment
 {assignment}
-Score is a percentage of 0-100 represented by a float (i.e 0.5 for 50% and 1.0 for 100%.
-Provide the points I got for each requirement of the assignment in the requirements list of the grade. They should share
-the same name and id.
-Feedback should contain your written report detailing critiques, weaknesses, and strengths you observe.
+Score is a percentage of 0-100 represented by a float (i.e 0.5 for 50% or and 1.0 for 100%.)
+Provide the points I got for each requirement of the assignment in the requirements list of the grade as an integer.
+They should share the same name and id.
+Feedback should contain your written report describing the submitted image in great detail before giving critiques,
+weaknesses, and strengths you observe. Start with an introduction and overview of the critique. Then, give the strengths
+and weaknesses you observed. In the middle goes your main critique, with the most detail of the image. Wrap it up with a
+conclusion giving advice on what to improve and how to do so. Give encouragement.
 Report id is a short string representation (i.e val_01_report)
 Follow this json schema but don't wrap the output in ```json```:
 {
     "score":float,
     "requirements": list[Requirement],
-    "feedback":str,
+    "feedback": Feedback,
     "report_id":str
 }
 and this one for requirements:
@@ -21,3 +24,13 @@ requirements: [
     }
 ]
 If the assignment doesn't have requirements, then try to create your own while following the format.
+and this one for feedback:
+feedback:
+{
+    "intro": str
+    "strengths": str
+    "weaknesses": str
+    "critique": str
+    "conclusion": str
+}
+If there's a reference image, the first image is mine, and the second is the reference image.

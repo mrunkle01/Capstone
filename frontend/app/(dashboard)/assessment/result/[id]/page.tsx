@@ -154,8 +154,9 @@ export default function ResultPage() {
                     className={styles.btnContinue}
                     onClick={handleContinueToNext}
                     disabled={generating}
-                    style={{ opacity: generating ? 0.6 : 1 }}
+                    style={{ opacity: generating ? 0.75 : 1 }}
                 >
+                    {generating && <span className={styles.btnSpinner} />}
                     {generating ? "Generating next section..." : "Continue to next section"}
                 </button>
                 <button
