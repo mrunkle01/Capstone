@@ -256,7 +256,7 @@ class AtelierClient:
         return grade
 
     def generate_lesson_plan(self, topic: str, time_commit: str, skill: str, amount: int = 5) -> LessonPlan:
-        model = 'qwen3.5:397b-cloud'
+        model = 'qwen2.5:7b'
         self.__initialize_context(["User Skill"], [{"skill": topic}])
         self.__initialize_context(["What is the user's goals?"], [{"type": "goal"}])
 
