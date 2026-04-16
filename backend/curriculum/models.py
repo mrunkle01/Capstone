@@ -29,10 +29,10 @@ class UserProfile(models.Model):
         default='beginner',
     )
     #attributes
-    gesture = models.FloatField(default=0)
-    lifeDrawing = models.FloatField(default=0)
-    stillLife = models.FloatField(default=0)
-    thumbnail = models.FloatField(default=0)
+    gesture = models.FloatField( default =0)
+    lifedrawing = models.FloatField(default=0)
+    stilllife = models.FloatField(default=0)
+    thumbnail = models.FloatField( default=0)
 
     artistic_goal = models.TextField(blank=True)
     time_commitment = models.CharField(
@@ -49,7 +49,6 @@ class UserProfile(models.Model):
     has_completed_pretest = models.BooleanField(default=False)
     has_active_curriculum = models.BooleanField(default=False)
 
-    # New fields from schema
     goal = models.ForeignKey(
         LearningGoal,
         on_delete=models.SET_NULL,

@@ -8,9 +8,10 @@ interface ImageInputProps {
     setImageUrl: (url: string) => void;
     onFileSelected?: (hasFile: boolean) => void;
     submitRef?: MutableRefObject<(() => void) | null>;
+    onLoadingChange?: (loading: boolean) => void;
 }
 
-export default function ImageInput({ setImageUrl, onFileSelected, submitRef }: ImageInputProps) {
+export default function ImageInput({ setImageUrl, onFileSelected, submitRef, onLoadingChange }: ImageInputProps) {
     const router = useRouter()
 
     const [error, setError] = useState<string | null>(null);
@@ -55,6 +56,7 @@ export default function ImageInput({ setImageUrl, onFileSelected, submitRef }: I
             const formData = new FormData();
             formData.append("image", imgFile.current)
             setIsLoading(true);
+            onLoadingChange?.(true);
             const data = await testImage(formData, assignment );
             // localStorage.setItem("assessmentResult", JSON.stringify(data));
             // localStorage.setItem("imageUrl", imgUrl.current ?? "");
@@ -62,6 +64,7 @@ export default function ImageInput({ setImageUrl, onFileSelected, submitRef }: I
         } catch (error) {
             setError("Something went wrong. Please try again.")
             setIsLoading(false);
+            onLoadingChange?.(false);
         }
     }
 
@@ -106,7 +109,7 @@ export default function ImageInput({ setImageUrl, onFileSelected, submitRef }: I
                     </>
                 )}
             </div>
-            {isLoading && <div className={styles.loadingMsg}>Submitting...</div>}
+            {/* {isLoading && <div className={styles.loadingMsg}>Submitting...</div>} */}
             {error && <p className={styles.errorMsg}>{error}</p>}
         </div>
     )

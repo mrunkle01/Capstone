@@ -139,30 +139,6 @@ def get_concept_details(request, concept_name: str):
         "sample_exercises": concept.sample_exercise_prompts
     }
 
-# @api.post("/assess/{section_id}")
-# def submit_assessment(request, section_id: int, assignment: str, image: UploadedFile = File(...)):
-#     image_data = image.read()
-#
-#     from ai.grading_agentv2 import grade_art
-#     result = grade_art(assignment, image_data)
-#
-#     score = int(result.score * 100)
-#
-#     # Save to DB
-#     section = Section.objects.get(id=section_id)
-#     assessment = Assessment.objects.create(
-#         user=request.user.profile,
-#         section=section,
-#         prompt="Image grading assessment"
-#     )
-#     report = ReportCard.objects.create(
-#         user=request.user.profile,
-#         assessment=assessment,
-#         feedback={"raw": result.feedback, "score": score}
-#     )
-#
-#     return {"score": score, "feedback": result.feedback, "report_id": report.id}
-
 @api.post("/gradeImage")
 def submit_assessment(request, assignment : str, image: UploadedFile = File(...)):
     image_data = image.read()
@@ -348,3 +324,22 @@ def update_attributes(request, attributes: UpdateAttributesSchema):
     request.user.profile.thumbnail = attributes.thumbnail
     request.user.profile.save()
     return 200
+
+@api.put("/updateLessonPlanWithChatBot")
+def update_lesson_plan(request, newLesson : LessonSchema):
+    if not request.user.is_authenticated:
+        return 401, {"message": "Not authenticated"}
+
+    if (newLesson.order > request.user.Dashboard.Lesson.length ):
+        return 401, {"message": "Can't update lesson that doesn't exist"}
+
+    request.user.Dashboard.Lessons[newLesson.order - 1] = newLesson
+
+    request.user.Dashboard.save()
+    return 200, {"message": "Lesson successfully updated"}
+
+@api.get("/grabNewLessonFromChatBot")
+def grab_new_lesson_from_chatbot(request):
+    if not request.user.is_authenticated:
+        return 401, {"message": "Not authenticated"}
+

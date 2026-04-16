@@ -31,8 +31,6 @@ export default function ResultPage() {
             .then(({ result: r, imageUrl: img }) => {
                 setResult(r);
                 setImageUrl(img);
-
-                // Save assessment completion to dashboard progress
                 loadDashboard().then((sections) => {
                     if (!sections || sections.length === 0) return;
                     const latest = sections[sections.length - 1];
@@ -73,7 +71,7 @@ export default function ResultPage() {
             await generateSections(
                 {
                     topic,
-                    timeCommit: profile.time_commitment || "regular",
+                    timeCommit: profile.time_commitment || "1 hr",
                     skillLevel: profile.skill_level || "beginner",
                 },
                 amount,
@@ -156,8 +154,9 @@ export default function ResultPage() {
                     className={styles.btnContinue}
                     onClick={handleContinueToNext}
                     disabled={generating}
-                    style={{ opacity: generating ? 0.6 : 1 }}
+                    style={{ opacity: generating ? 0.75 : 1 }}
                 >
+                    {generating && <span className={styles.btnSpinner} />}
                     {generating ? "Generating next section..." : "Continue to next section"}
                 </button>
                 <button

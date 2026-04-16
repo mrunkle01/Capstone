@@ -165,6 +165,8 @@ LOGIN_REDIRECT_URL = '/'
 CORS_ALLOW_CREDENTIALS = True # needed for login post request
 CORS_ALLOWED_ORIGINS = [
     'https://capstone-pi-liard.vercel.app',
+    'https://atelierart.dev',
+    'https://www.atelierart.dev',
     'http://localhost:3000'
 ]
 
@@ -181,3 +183,11 @@ LOGOUT_REDIRECT_URL = '/' # Redirect to the homepage after logout
 # Celery
 CELERY_BROKER_URL = config('REDIS_URL', default='redis://localhost:6379/0')
 CELERY_RESULT_BACKEND = config('REDIS_URL', default='redis://localhost:6379/0')
+
+#fixes issue where user authentication fails because of a mismatch
+SESSION_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_HTTPONLY = True
+
+CSRF_COOKIE_SAMESITE = 'None'
+CSRF_COOKIE_SECURE = True
