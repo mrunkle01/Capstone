@@ -278,6 +278,21 @@ class ReportCard(models.Model):
     def __str__(self):
         return f"ReportCard for {self.user} - {self.assessment}"
 
+
+class ChatLog(models.Model):
+    user = models.ForeignKey(
+        UserProfile,
+        on_delete=models.CASCADE,
+        related_name='chat_logs'
+    )
+    context = models.TextField()
+    action = models.CharField(max_length=100)
+    change_made = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"ChatLog - {self.user} - {self.action}"
+
 class DashBoard(models.Model):
     user = models.ForeignKey(
         UserProfile,
@@ -297,6 +312,7 @@ class DashBoard(models.Model):
     def __str__(self):
         return f"DashBoard - {self.user} - Section {self.order}"
 
+# Placeholder models for future use
 class GradeReport(models.Model):
     user = models.ForeignKey(
         UserProfile,
@@ -313,3 +329,28 @@ class GradeReport(models.Model):
 
     def __str__(self):
         return f"GradeReport {self.id} - score: {self.score}"
+
+
+class Drawings(models.Model):
+    name = models.CharField(max_length=100)
+
+class Curriculum(models.Model):
+    name = models.CharField(max_length=100)
+
+class ConceptMastery(models.Model):
+    name = models.CharField(max_length=100)
+
+class Module(models.Model):
+    name = models.CharField(max_length=100)
+
+class PracticeExercise(models.Model):
+    name = models.CharField(max_length=100)
+
+class ChatMessage(models.Model):
+    name = models.CharField(max_length=100)
+
+class CurriculumModification(models.Model):
+    name = models.CharField(max_length=100)
+
+class Milestone(models.Model):
+    name = models.CharField(max_length=100)
