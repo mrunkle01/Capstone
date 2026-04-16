@@ -165,6 +165,8 @@ LOGIN_REDIRECT_URL = '/'
 CORS_ALLOW_CREDENTIALS = True # needed for login post request
 CORS_ALLOWED_ORIGINS = [
     'https://capstone-pi-liard.vercel.app',
+    'https://atelierart.dev',
+    'https://www.atelierart.dev',
     'http://localhost:3000'
 ]
 
