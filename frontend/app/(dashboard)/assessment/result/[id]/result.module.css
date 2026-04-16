@@ -151,9 +151,26 @@
     font-weight: 500;
     cursor: pointer;
     transition: background 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
 }
 .btnContinue:hover {
     background: #a4883f;
+}
+
+.btnSpinner {
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: spin 0.9s linear infinite;
+    flex-shrink: 0;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
 }
 
 .btnBack {

@@ -16,7 +16,7 @@ export default function AssessmentLoading({ imageUrl }: AssessmentLoadingProps) 
                 <div className={styles.heading}>Grading your drawing&hellip;</div>
                 <div className={styles.sub}>
                     Our AI is analyzing line, shape, and shading. This usually takes
-                    10&ndash;30 seconds &mdash; please don&apos;t close the page.
+                    10 - 30 seconds - please don't close the page.
                 </div>
             </div>
         </div>
