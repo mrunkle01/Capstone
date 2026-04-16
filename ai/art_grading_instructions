@@ -33,3 +33,4 @@ feedback:
     "critique": str
     "conclusion": str
 }
+If there's a reference image, the first image is mine, and the second is the reference image.
