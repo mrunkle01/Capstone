@@ -8,7 +8,7 @@ from ollama import Client, WebSearchResponse, WebFetchResponse, ChatResponse
 script_dir = os.path.dirname(os.path.abspath(__file__))
 personality_path = os.path.join(script_dir, "personality.txt")
 lesson_plan_path = os.path.join(script_dir, "lesson_plan_instructions.txt")
-art_grading_path = os.path.join(script_dir, "art_grading_instructions.txt.txt")
+art_grading_path = os.path.join(script_dir, "art_grading_instructions.txt")
 
 class LessonContent(BaseModel):
     time: int
