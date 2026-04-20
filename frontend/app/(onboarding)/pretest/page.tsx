@@ -265,12 +265,9 @@ export default function PretestPage() {
             thumbnail: "Thumbnail Sketch",
         };
 
-        // Extract per-requirement entries from a drawing score object
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        function getRequirements(drawingData: Record<string, any>) {
-            return Object.entries(drawingData).filter(
-                ([key, val]) => key !== "score" && key !== "report_id" && typeof val === "object" && val !== null && "score" in val
-            ) as [string, { score: number; brief_feedback?: string }][];
+        function getRequirements(drawingData: Record<string, any>): { name: string; r_id: string; points: number }[] {
+            return Array.isArray(drawingData.requirements) ? drawingData.requirements : [];
         }
 
         return (
@@ -304,13 +301,10 @@ export default function PretestPage() {
                                         <div className={styles.drawingCardTitle}>{DRAWING_LABELS[key]}</div>
                                         {reqs.length > 0 && (
                                             <ul className={styles.reqList}>
-                                                {reqs.map(([reqKey, reqVal]) => (
-                                                    <li key={reqKey} className={styles.reqItem}>
-                                                        <span className={styles.reqName}>{reqKey}</span>
-                                                        <span className={styles.reqScore}>{reqVal.score}</span>
-                                                        {reqVal.brief_feedback && (
-                                                            <span className={styles.reqFeedback}>{reqVal.brief_feedback}</span>
-                                                        )}
+                                                {reqs.map((req) => (
+                                                    <li key={req.r_id} className={styles.reqItem}>
+                                                        <span className={styles.reqName}>{req.name}</span>
+                                                        <span className={styles.reqScore}>{req.points} pts</span>
                                                     </li>
                                                 ))}
                                             </ul>

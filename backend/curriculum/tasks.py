@@ -1,4 +1,5 @@
 import os
+import asyncio
 from celery import shared_task
 from .atelier_agent import AtelierClient
 
@@ -34,7 +35,9 @@ def grade_user_art(self, assignment: str, img: bytes, report_id=None, ref_key=No
             feedback=feedback_dict,
         )
 
-    return {"score": score, "feedback": feedback_dict, "report_id": report_id}
+    requirements = [{"name": r.name, "r_id": r.r_id, "points": r.points} for r in gradeJSON.requirements]
+
+    return {"score": score, "feedback": feedback_dict, "report_id": report_id, "requirements": requirements}
 
 @shared_task(bind=True)
 def generate_pretest_dashboard_task(self, pretest_scores, goal, time_commitment):
@@ -100,6 +103,26 @@ def generate_new_lesson(self, topic, timeCommit, skillLevel, amount=1):
         },
         "order": lessonJSON.content.order
     }
+
+
+@shared_task(bind=True)
+def chat_task(self, message: str, user_id: str):
+    """
+    Sends a user message to the Atelier AI and returns the assistant reply.
+
+    Each user gets their own AtelierClient instance (keyed by user_id), so:
+    - Conversation history is isolated per user
+    - Two users can chat simultaneously without blocking each other
+
+    async_chat is declared async but uses the synchronous Ollama client
+    internally, so asyncio.run() is safe here.
+
+    If you want persistent cross-session memory, the AgentMemory (ChromaDB)
+    inside AtelierClient already stores summaries — no extra work needed.
+    """
+    client = AtelierClient(user_id)
+    result = asyncio.run(client.async_chat(message))
+    return {"reply": result.message.content}
 
 
 @shared_task(bind=True)

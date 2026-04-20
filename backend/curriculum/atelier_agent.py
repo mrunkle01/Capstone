@@ -112,10 +112,14 @@ class Grade(BaseModel):
 
 
 class AtelierClient:
+    # One instance per user_id so users don't share message history or block each other.
+    # Celery workers are long-lived processes, so these persist for the duration of the worker.
+    _instances: dict = {}
+
     def __new__(cls, user_id_ref: str):
-        if not hasattr(cls, '__inst'):
-            cls.inst = super(AtelierClient, cls).__new__(cls)
-        return cls.inst
+        if user_id_ref not in cls._instances:
+            cls._instances[user_id_ref] = super(AtelierClient, cls).__new__(cls)
+        return cls._instances[user_id_ref]
 
     def __init__(self, user_id: str):
         # Create client
@@ -165,12 +169,13 @@ class AtelierClient:
         else:
             return False
 
-    def __generate(self, model: str, instr, form) -> ChatResponse:
+    def __generate(self, model: str, instr, form, use_tools: bool = True) -> ChatResponse:
         self.__messages.append(instr)
-        final_res = self.__client.chat(model=model, messages=self.__messages, tools=self.__tools, format=form,
+        tools = self.__tools if use_tools else []
+        final_res = self.__client.chat(model=model, messages=self.__messages, tools=tools, format=form,
                                  options=self.__options)
 
-        if self.__exec_tools(final_res):
+        if use_tools and self.__exec_tools(final_res):
             final_res = self.__client.chat(model=model, messages=self.__messages, format=form,
                                               options=self.__options)
 
@@ -242,12 +247,16 @@ class AtelierClient:
         file_data = file_data.replace('{assignment}', assignment)
 
         instructions = {'role': 'user', 'content': file_data, 'images': [img_final]}
-        response = self.__generate(model, instructions, Grade.model_json_schema())
-        grade: Grade = Grade.model_validate_json(response.message.content)
-        # self.memory.store_memory([f"Assignment: {assignment} Grade: {grade.to_string()}"],
-        #                          {"type": "assessment"})
 
-        return grade
+        last_error = None
+        for attempt in range(3):
+            response = self.__generate(model, instructions, Grade.model_json_schema(), use_tools=False)
+            try:
+                return Grade.model_validate_json(response.message.content)
+            except ValidationError as e:
+                last_error = e
+                print(f"grade_art attempt {attempt + 1} failed to validate: {e}")
+        raise last_error
 
     def grade_art_with_ref(self, assignment: str, img: bytes, ref: bytes):
         # model = 'qwen3-vl:235b-cloud'
@@ -262,12 +271,16 @@ class AtelierClient:
         file_data = file_data.replace('{assignment}', assignment)
 
         instructions = {'role': 'user', 'content': file_data, 'images': [img_final, ref_final]}
-        response = self.__generate(model, instructions, Grade.model_json_schema())
-        grade: Grade = Grade.model_validate_json(response.message.content)
-        # self.memory.store_memory([f"Assignment: {assignment} Grade: {grade.to_string()}"],
-        #                          {"type": "assessment"})
 
-        return grade
+        last_error = None
+        for attempt in range(3):
+            response = self.__generate(model, instructions, Grade.model_json_schema(), use_tools=False)
+            try:
+                return Grade.model_validate_json(response.message.content)
+            except ValidationError as e:
+                last_error = e
+                print(f"grade_art_with_ref attempt {attempt + 1} failed to validate: {e}")
+        raise last_error
 
     def generate_lesson_plan(self, topic: str, time_commit: str, skill: str, amount: int = 5) -> LessonPlan:
         model = 'qwen3.5:397b-cloud'
@@ -282,7 +295,7 @@ class AtelierClient:
         file_data = file_data.replace('{amount}', str(amount))
 
         instructions = {'role': 'user', 'content': file_data}
-        response = self.__generate(model, instructions, LessonPlan.model_json_schema())
+        response = self.__generate(model, instructions, LessonPlan.model_json_schema(), use_tools=False)
         lesson_plan: LessonPlan = LessonPlan.model_validate_json(response.message.content)
         # self.memory.store_memory([lesson_plan.to_string()], {"type": "lesson_plan"})
         # Verify lesson time and assessment points

@@ -121,6 +121,19 @@
     line-height: 1.7;
 }
 
+.feedbackSection {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.feedbackSectionLabel {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: #b5995a;
+}
+
 .imagePanel {
     background: #ffffff;
     border: 0.5px solid #d8d0c0;
