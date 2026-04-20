@@ -1,4 +1,5 @@
 import { SectionResponse } from "@/lib/types/dashboard";
+import { Feedback } from "@/lib/types/assessment";
 
 export interface NextSectionParams {
     topic: string;
@@ -7,9 +8,12 @@ export interface NextSectionParams {
 
 export function buildNextSectionParams(
     score: number,
-    feedback: string,
+    feedback: Feedback | string,
     previousSection: SectionResponse,
 ): NextSectionParams {
+    if (typeof feedback !== "string") {
+        feedback = [feedback.intro, feedback.weaknesses, feedback.critique].filter(Boolean).join(" ");
+    }
     const prevTitle = previousSection.Section;
     const lessonTitles = previousSection.Lessons
         .sort((a, b) => a.order - b.order)

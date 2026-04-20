@@ -90,7 +90,13 @@ export default function ResultPage() {
     if (loading || !result) return null;
 
     const tier = getScoreTier(result.score);
-    const feedbackParagraphs = result.feedback.split("\n\n").filter(Boolean);
+    const feedbackSections = [
+        { label: "Overview", text: result.feedback.intro },
+        { label: "Strengths", text: result.feedback.strengths },
+        { label: "Weaknesses", text: result.feedback.weaknesses },
+        { label: "Critique", text: result.feedback.critique },
+        { label: "Closing", text: result.feedback.conclusion },
+    ].filter((s) => s.text);
 
     return (
         <div className={styles.page}>
@@ -134,8 +140,11 @@ export default function ResultPage() {
                 <div className={styles.feedbackPanel}>
                     <span className={styles.panelLabel}>Feedback</span>
                     <div className={styles.feedbackBody}>
-                        {feedbackParagraphs.map((p, i) => (
-                            <p key={i}>{p}</p>
+                        {feedbackSections.map((s, i) => (
+                            <div key={i} className={styles.feedbackSection}>
+                                <span className={styles.feedbackSectionLabel}>{s.label}</span>
+                                <p>{s.text}</p>
+                            </div>
                         ))}
                     </div>
                 </div>

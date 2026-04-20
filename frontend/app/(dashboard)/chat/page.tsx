@@ -14,7 +14,7 @@ export default function Chat() {
     };
 
     return (
-        <div className="flex-1 min-h-screen bg-neutral-50">
+        <div className="flex-1 min-h-screen" style={{ background: "#f0ece3" }}>
             <ChatPanel isOpen={isOpen} onClose={handleClose} />
         </div>
     );

@@ -3,9 +3,9 @@ from ninja.files import UploadedFile
 from ninja.security import SessionAuth
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from .tasks import generate_dashboard_task, generate_pretest_dashboard_task, grade_user_art, generate_new_lesson
+from .tasks import generate_dashboard_task, generate_pretest_dashboard_task, grade_user_art, generate_new_lesson, chat_task
 from .models import UserProfile, Section, Assessment, ReportCard, DashBoard, GradeReport
-from .schemas import (RegisterSchema, UpdateProfileSchema, LearningGoalSchema,
+from .schemas import (RegisterSchema, UpdateProfileSchema, LearningGoalSchema, ChatInputSchema,
                       PretestResultSchema, PretestQuestionSchema, PretestQuestionOptionSchema,
                       SectionSchema, LessonSchema, UserLessonSchema, AssessmentSchema,
                       ReportCardSchema, ChatLogSchema, UserInSchema, LogResultsSchema,
@@ -317,3 +317,42 @@ def check_grab_new_lesson(request, job_id : str):
     elif task.state == "FAILURE":
         return {"status": "error", "error": str(task.result)}
     return {"status": task.state}
+
+
+# --- Chat endpoints ---
+# The AI keeps per-user message history inside AtelierClient (keyed by username),
+# so these endpoints are stateless on the Django side — no DB writes needed for
+# the conversation itself. ChromaDB inside the agent handles long-term memory.
+
+@api.post("/chat", response={200: dict, 401: dict})
+def start_chat(request, data: ChatInputSchema):
+    """
+    Enqueues the user's message for the AI to process.
+    Returns a job_id the frontend polls against /api/chat/status/{job_id}.
+    Requires the user to be logged in so each user gets their own AI context.
+    """
+    if not request.user.is_authenticated:
+        return 401, {"message": "Must be logged in to chat"}
+
+    # Pass the username as user_id so AtelierClient gives each user
+    # their own isolated instance and conversation history.
+    task = chat_task.delay(data.message, request.user.username)
+    return 200, {"job_id": task.id}
+
+
+@api.get("/chat/status/{job_id}", response={200: dict})
+def check_chat(request, job_id: str):
+    """
+    Polls the status of a chat job.
+    Returns { status: "pending" | "complete" | "error", reply?: str }
+    """
+    from celery.result import AsyncResult
+    task = AsyncResult(job_id)
+
+    if task.state == "PENDING":
+        return 200, {"status": "pending"}
+    elif task.state == "SUCCESS":
+        return 200, {"status": "complete", "reply": task.result.get("reply", "")}
+    elif task.state == "FAILURE":
+        return 200, {"status": "error", "error": str(task.result)}
+    return 200, {"status": task.state}

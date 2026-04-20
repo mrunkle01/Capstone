@@ -109,3 +109,7 @@ class UpdateAttributesSchema(Schema):
     lifeDrawing: float
     stillLife: float
     thumbnail: float
+
+# Chat endpoint — message sent by the user to the AI chatbot
+class ChatInputSchema(Schema):
+    message: str
