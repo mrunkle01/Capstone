@@ -298,7 +298,10 @@ export default function PretestPage() {
                                 const reqs = getRequirements(data);
                                 return (
                                     <div key={key} className={styles.drawingCard}>
-                                        <div className={styles.drawingCardTitle}>{DRAWING_LABELS[key]}</div>
+                                        <div className={styles.drawingCardHeader}>
+                                            <div className={styles.drawingCardTitle}>{DRAWING_LABELS[key]}</div>
+                                            <div className={styles.drawingCardScore}>{data.score ?? "—"}</div>
+                                        </div>
                                         {reqs.length > 0 && (
                                             <ul className={styles.reqList}>
                                                 {reqs.map((req) => (
