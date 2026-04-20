@@ -1,25 +1,40 @@
+import os
 from celery import shared_task
 from .atelier_agent import AtelierClient
 
+_REF_DIR = os.path.join(os.path.dirname(__file__), "ref_images")
+_REF_IMAGE_MAP = {
+    "gesture":     os.path.join(_REF_DIR, "gesture-figure.jpg"),
+    "lifeDrawing": os.path.join(_REF_DIR, "gesture-figure.jpg"),
+    "stillLife":   os.path.join(_REF_DIR, "still-life.JPG"),
+    "thumbnail":   os.path.join(_REF_DIR, "Example-thumbnails.jpg"),
+}
 
 
 @shared_task(bind=True)
-def grade_user_art(self, assignment : str, img : bytes, report_id=None):
-    client = AtelierClient()
+def grade_user_art(self, assignment: str, img: bytes, report_id=None, ref_key=None):
+    client = AtelierClient("system")
 
-    gradeJSON = client.grade_art(assignment, img)
+    ref_path = _REF_IMAGE_MAP.get(ref_key) if ref_key else None
+    if ref_path and os.path.exists(ref_path):
+        with open(ref_path, "rb") as f:
+            ref_bytes = f.read()
+        gradeJSON = client.grade_art_with_ref(assignment, img, ref_bytes)
+    else:
+        gradeJSON = client.grade_art(assignment, img)
 
     score = int(gradeJSON.score * 100)
+    feedback_dict = gradeJSON.feedback.model_dump()
 
     # Update the GradeReport row with score + feedback
     if report_id:
         from .models import GradeReport
         GradeReport.objects.filter(id=report_id).update(
             score=score,
-            feedback=gradeJSON.feedback,
+            feedback=feedback_dict,
         )
 
-    return {"score": score, "feedback": gradeJSON.feedback, "report_id": report_id}
+    return {"score": score, "feedback": feedback_dict, "report_id": report_id}
 
 @shared_task(bind=True)
 def generate_pretest_dashboard_task(self, pretest_scores, goal, time_commitment):
@@ -52,7 +67,7 @@ def generate_pretest_dashboard_task(self, pretest_scores, goal, time_commitment)
     else:
         skill = 'beginner'
 
-    client = AtelierClient()
+    client = AtelierClient("system")
     sectionJSON = client.generate_lesson_plan(goal, time_commitment, skill, 3)
     return {
         "skill_level": skill,
@@ -73,7 +88,7 @@ def generate_pretest_dashboard_task(self, pretest_scores, goal, time_commitment)
 #Create task that grabs a newly generated lesson from the ai. this will be called by the chat bot
 @shared_task(bind=True)
 def generate_new_lesson(self, topic, timeCommit, skillLevel, amount=1):
-    client = AtelierClient()
+    client = AtelierClient("system")
     lessonJSON = client.generate_lesson(topic, timeCommit, skillLevel, amount)
     return {
         "title": lessonJSON.title,
@@ -89,7 +104,7 @@ def generate_new_lesson(self, topic, timeCommit, skillLevel, amount=1):
 
 @shared_task(bind=True)
 def generate_dashboard_task(self, topic, timeCommit, skillLevel, amount=3):  # amount = number of lessons
-    client = AtelierClient()
+    client = AtelierClient("system")
     sectionJSON = client.generate_lesson_plan(topic, timeCommit, skillLevel, amount)
     return {
         "Section": sectionJSON.section,

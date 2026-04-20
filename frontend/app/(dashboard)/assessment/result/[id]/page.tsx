@@ -24,6 +24,7 @@ export default function ResultPage() {
     const [imageUrl, setImageUrl] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [generating, setGenerating] = useState(false);
+    const [generateError, setGenerateError] = useState<string | null>(null);
 
     useEffect(() => {
         if (!reportId) return;
@@ -50,6 +51,7 @@ export default function ResultPage() {
     async function handleContinueToNext() {
         if (!result || generating) return;
         setGenerating(true);
+        setGenerateError(null);
         try {
             // Load the current section and user profile to build context
             const [sectionData, profile] = await Promise.all([
@@ -80,6 +82,7 @@ export default function ResultPage() {
             router.push("/dashboard");
         } catch (e) {
             console.error("Failed to generate next section:", e);
+            setGenerateError("We couldn't generate your next section. Please try again.");
             setGenerating(false);
         }
     }
@@ -167,6 +170,14 @@ export default function ResultPage() {
                 >
                     &larr; Back to dashboard
                 </button>
+                {generateError && (
+                    <div className={styles.generateError}>
+                        <span>{generateError}</span>
+                        <button className={styles.btnRetry} onClick={handleContinueToNext}>
+                            Retry
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );

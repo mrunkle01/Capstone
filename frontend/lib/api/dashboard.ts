@@ -32,7 +32,8 @@ export async function generateSections(userInfo: UserInfo, amount: number = 3): 
 
     const { job_id } = await res.json();
 
-    while (true) {
+    const MAX_ATTEMPTS = 60;
+    for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
         await new Promise((r) => setTimeout(r, 5000));
         const poll = await fetch(`${API}/api/generate/status/${job_id}`, { credentials: "include" });
         if (!poll.ok) throw new Error("Failed to check job status");
@@ -42,6 +43,7 @@ export async function generateSections(userInfo: UserInfo, amount: number = 3): 
         if (job.status === "error") throw new Error(job.error || "AI generation failed");
         // status === "pending" — keep polling.
     }
+    throw new Error("Generation timed out. Please try again.");
 }
 
 export type DashboardProgress = {

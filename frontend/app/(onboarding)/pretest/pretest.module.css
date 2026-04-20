@@ -283,13 +283,12 @@
 .resultsPage {
     max-width: 680px;
     margin: 0 auto;
-    padding: 32px 24px 60px;
+    padding: 48px 24px 60px;
     background: #F5F0E8;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
     gap: 16px;
     font-family: var(--font-dm-sans), 'DM Sans', sans-serif;
     animation: fadeIn 0.4s ease-out;
@@ -362,6 +361,68 @@
     max-width: 340px;
     line-height: 1.6;
     margin-bottom: 8px;
+}
+
+/* Per-drawing breakdown on results screen */
+.drawingBreakdown {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 4px 0;
+}
+
+.drawingCard {
+    background: #fff;
+    border: 1px solid #D3D1C7;
+    border-radius: 10px;
+    padding: 16px 20px;
+    width: 100%;
+}
+
+.drawingCardTitle {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: #888780;
+    margin-bottom: 10px;
+}
+
+.reqList {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.reqItem {
+    display: grid;
+    grid-template-columns: 110px 32px 1fr;
+    align-items: baseline;
+    gap: 8px;
+    font-size: 13px;
+    color: #444441;
+}
+
+.reqName {
+    text-transform: capitalize;
+    font-weight: 500;
+    color: #2C2B26;
+}
+
+.reqScore {
+    font-weight: 600;
+    color: #B8A050;
+    text-align: right;
+}
+
+.reqFeedback {
+    color: #888780;
+    font-size: 12px;
+    line-height: 1.5;
 }
 
 @keyframes spin {

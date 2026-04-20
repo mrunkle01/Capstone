@@ -2,10 +2,12 @@ const API = process.env.NEXT_PUBLIC_API_URL;
 
 export async function submitPretestImage(
     formData: FormData,
-    assignment: string
+    assignment: string,
+    refKey?: string
 ): Promise<{ job_id: string; report_id: string }> {
+    const refParam = refKey ? `&ref_key=${encodeURIComponent(refKey)}` : "";
     const res = await fetch(
-        `${API}/api/gradeImage?assignment=${encodeURIComponent(assignment)}`,
+        `${API}/api/gradeImage?assignment=${encodeURIComponent(assignment)}${refParam}`,
         {
             method: "POST",
             credentials: "include",

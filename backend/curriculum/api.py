@@ -110,7 +110,7 @@ def get_report(request, report_id: int):
     }
 
 @api.post("/gradeImage")
-def submit_assessment(request, assignment : str, image: UploadedFile = File(...)):
+def submit_assessment(request, assignment: str, image: UploadedFile = File(...), ref_key: str = None):
     image_data = image.read()
 
     # Save report to DB immediately (score/feedback populated after grading completes)
@@ -121,9 +121,9 @@ def submit_assessment(request, assignment : str, image: UploadedFile = File(...)
         image=image_data,
     )
 
-    task = grade_user_art.delay(assignment, image_data, report.id)
+    task = grade_user_art.delay(assignment, image_data, report.id, ref_key)
     request.session["pending_job_id"] = task.id
-    return {"job_id" : task.id, "report_id": report.id}
+    return {"job_id": task.id, "report_id": report.id}
 
 @api.post("/gradeImage/status/{job_id}")
 def check_submit_assessment(request, job_id: str):
