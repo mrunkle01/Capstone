@@ -380,13 +380,27 @@
     width: 100%;
 }
 
+.drawingCardHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
 .drawingCardTitle {
     font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.07em;
     color: #888780;
-    margin-bottom: 10px;
+}
+
+.drawingCardScore {
+    font-family: var(--font-playfair), 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 400;
+    color: #B8A050;
+    line-height: 1;
 }
 
 .reqList {
