@@ -23,6 +23,7 @@ const QUESTIONS = [
     {
         id: 1,
         title: "Gesture Drawing",
+        refKey: "gesture",
         image: "/pImg/gesture-figure.jpg",
         instruction:
             "Using the reference above, draw a gesture drawing with approximate proportions.",
@@ -32,6 +33,7 @@ const QUESTIONS = [
     {
         id: 2,
         title: "Life Drawing",
+        refKey: "lifeDrawing",
         image: "/pImg/gesture-figure.jpg",
         instruction:
             "Now refine your gesture drawing into a detailed figure drawing with accurate anatomy and rendering. Draw on top of your gesture as your foundation and submit the completed drawing.",
@@ -41,6 +43,7 @@ const QUESTIONS = [
     {
         id: 3,
         title: "Mini Still Life",
+        refKey: "stillLife",
         image: "/pImg/still-life.JPG",
         instruction:
             "Draw the object above, accurately recreating its perspective, orientation, and light and shadow.",
@@ -50,6 +53,7 @@ const QUESTIONS = [
     {
         id: 4,
         title: "Thumbnail Sketch",
+        refKey: "thumbnail",
         image: "/pImg/Example-thumbnails.jpg",
         instruction:
             "Create a thumbnail sketch of the environment above, focusing on composition.",
@@ -122,6 +126,8 @@ export default function PretestPage() {
     const [isGenerating, setIsGenerating] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [skillResult, setSkillResult] = useState<{ key: string; label: string; avg: number } | null>(null);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const [pretestBreakdown, setPretestBreakdown] = useState<Record<string, any> | null>(null);
 
     // Per-question upload state
     const [file, setFile] = useState<File | null>(null);
@@ -166,7 +172,7 @@ export default function PretestPage() {
         formData.append("image", file);
 
         try {
-            const { job_id } = await submitPretestImage(formData, question.assignment);
+            const { job_id } = await submitPretestImage(formData, question.assignment, question.refKey);
             const newJobIds = [...jobIds, job_id];
             setJobIds(newJobIds);
 
@@ -195,6 +201,7 @@ export default function PretestPage() {
             const { pretestScores } = await resolveAllPretestScores(jobIds, selectedGoal, selectedTime);
             const skill = computeSkillLevel(pretestScores);
             setSkillResult(skill);
+            setPretestBreakdown(pretestScores);
             updateProfile({ skill_level: skill.key, artistic_goal: selectedGoal, time_commitment: selectedTime }).catch(() => {});
             setCurrentStep("results");
         } catch {
@@ -213,6 +220,7 @@ export default function PretestPage() {
             const { pretestScores } = await resolveAllPretestScores(jobIds, selectedGoal, selectedTime);
             const skill = computeSkillLevel(pretestScores);
             setSkillResult(skill);
+            setPretestBreakdown(pretestScores);
             updateProfile({ skill_level: skill.key, artistic_goal: selectedGoal, time_commitment: selectedTime }).catch(() => {});
             setCurrentStep("results");
         } catch {
@@ -250,6 +258,21 @@ export default function PretestPage() {
     }
 
     if (currentStep === "results" && skillResult) {
+        const DRAWING_LABELS: Record<string, string> = {
+            gesture: "Gesture Drawing",
+            lifeDrawing: "Life Drawing",
+            stillLife: "Mini Still Life",
+            thumbnail: "Thumbnail Sketch",
+        };
+
+        // Extract per-requirement entries from a drawing score object
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        function getRequirements(drawingData: Record<string, any>) {
+            return Object.entries(drawingData).filter(
+                ([key, val]) => key !== "score" && key !== "report_id" && typeof val === "object" && val !== null && "score" in val
+            ) as [string, { score: number; brief_feedback?: string }][];
+        }
+
         return (
             <div className={styles.outer}>
                 <div className={`${styles.resultsPage} ${playfair.variable} ${dmSans.variable}`}>
@@ -269,6 +292,34 @@ export default function PretestPage() {
                         <div className={styles.skillLevel}>{skillResult.label}</div>
                         <div className={styles.skillScore}>Overall score: {skillResult.avg}%</div>
                     </div>
+
+                    {pretestBreakdown && (
+                        <div className={styles.drawingBreakdown}>
+                            {(["gesture", "lifeDrawing", "stillLife", "thumbnail"] as const).map((key) => {
+                                const data = pretestBreakdown[key];
+                                if (!data) return null;
+                                const reqs = getRequirements(data);
+                                return (
+                                    <div key={key} className={styles.drawingCard}>
+                                        <div className={styles.drawingCardTitle}>{DRAWING_LABELS[key]}</div>
+                                        {reqs.length > 0 && (
+                                            <ul className={styles.reqList}>
+                                                {reqs.map(([reqKey, reqVal]) => (
+                                                    <li key={reqKey} className={styles.reqItem}>
+                                                        <span className={styles.reqName}>{reqKey}</span>
+                                                        <span className={styles.reqScore}>{reqVal.score}</span>
+                                                        {reqVal.brief_feedback && (
+                                                            <span className={styles.reqFeedback}>{reqVal.brief_feedback}</span>
+                                                        )}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
 
                     <div className={styles.resultsNote}>
                         Your personalized learning plan has been built around this level.

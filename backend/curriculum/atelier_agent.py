@@ -84,17 +84,31 @@ class LessonPlan(BaseModel):
                 self.assessment.to_string() + "\n" + resources_string)
 
 
+class Feedback(BaseModel):
+    intro: str
+    strengths: str
+    weaknesses: str
+    critique: str
+    conclusion: str
+
+    def to_string(self) -> str:
+        return ("Intro:\n" + self.intro + "\n" + "Strengths:\n" + self.strengths + "\n" +
+                "Weaknesses:\n" + self.weaknesses + "\n" + "Critique:\n" + self.critique + "\n" +
+                "Conclusion:\n" + self.conclusion)
+
+
 class Grade(BaseModel):
     score: float
     requirements: list[Requirement]
-    feedback: str
+    feedback: Feedback
     report_id: str
 
     def to_string(self) -> str:
         req_string = ""
         for req in self.requirements:
             req_string += req.to_string() + '\n'
-        return "Score: " + str(self.score) + "\n" + self.feedback + "\n" + req_string + '\n' + self.report_id
+        return ("Score: " + str(self.score) + "\n" + self.feedback.to_string() + "\n" +
+                req_string + '\n' + self.report_id)
 
 
 class AtelierClient:
@@ -256,7 +270,7 @@ class AtelierClient:
         return grade
 
     def generate_lesson_plan(self, topic: str, time_commit: str, skill: str, amount: int = 5) -> LessonPlan:
-        model = 'qwen2.5:7b'
+        model = 'qwen3.5:397b-cloud'
         self.__initialize_context(["User Skill"], [{"skill": topic}])
         self.__initialize_context(["What is the user's goals?"], [{"type": "goal"}])
 

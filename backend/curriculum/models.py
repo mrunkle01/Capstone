@@ -322,7 +322,7 @@ class GradeReport(models.Model):
         blank=True,
     )
     score = models.IntegerField(null=True, blank=True)
-    feedback = models.TextField(blank=True)
+    feedback = models.JSONField(null=True, blank=True)
     assignment = models.TextField()
     image = models.BinaryField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

@@ -137,8 +137,33 @@
 /* Actions */
 .actions {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 14px;
+}
+
+.generateError {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+    color: #c0392b;
+}
+
+.btnRetry {
+    background: none;
+    border: 1px solid #c0392b;
+    border-radius: 6px;
+    padding: 5px 14px;
+    font-size: 12px;
+    color: #c0392b;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+.btnRetry:hover {
+    background: #c0392b;
+    color: #fff;
 }
 
 .btnContinue {

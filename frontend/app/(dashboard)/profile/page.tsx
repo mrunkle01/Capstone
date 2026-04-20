@@ -66,7 +66,6 @@ export default function Profile() {
             <div className="d-profile-card">
                 <div className="d-profile-card-header">
                     LEARNING PREFERENCES
-                    <button className="d-profile-edit-btn">Edit</button>
                 </div>
                 <div className="d-profile-row">
                     <span className="d-profile-field">Artistic goal</span>

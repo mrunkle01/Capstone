@@ -1,16 +1,27 @@
 Can you grade my performance drawing this image according to the following assignment
 {assignment}
-Score is a percentage of 0-100 represented by a float (i.e 0.5 for 50% and 1.0 for 100%.
+Score is a percentage of 0-100 represented by a float (i.e 0.5 for 50% and 1.0 for 100%).
 Provide the points I got for each requirement of the assignment in the requirements list of the grade. They should share
 the same name and id.
-Feedback should contain your written report detailing critiques, weaknesses, and strengths you observe.
-Report id is a short string representation (i.e val_01_report)
-Follow this json schema but don't wrap the output in ```json```:
+Feedback must be a JSON object (not a plain string) with exactly these five fields:
+  - intro: A brief opening statement about the drawing overall.
+  - strengths: What the student did well.
+  - weaknesses: Areas that need improvement.
+  - critique: Specific actionable critique tied to the assignment criteria.
+  - conclusion: A closing encouraging remark and summary.
+Report id is a short string representation (i.e val_01_report).
+Follow this json schema exactly but don't wrap the output in ```json```:
 {
-    "score":float,
+    "score": float,
     "requirements": list[Requirement],
-    "feedback":str,
-    "report_id":str
+    "feedback": {
+        "intro": str,
+        "strengths": str,
+        "weaknesses": str,
+        "critique": str,
+        "conclusion": str
+    },
+    "report_id": str
 }
 and this one for requirements:
 requirements: [
