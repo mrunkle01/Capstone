@@ -303,12 +303,12 @@ class AtelierClient:
 
         last_error = None
         for attempt in range(3):
-            response = self.__generate(model, instructions, Grade.model_json_schema(), use_tools=False)
             try:
+                response = self.__generate(model, instructions, Grade.model_json_schema(), use_tools=False)
                 return Grade.model_validate_json(response.message.content)
-            except ValidationError as e:
+            except Exception as e:
                 last_error = e
-                print(f"grade_art attempt {attempt + 1} failed to validate: {e}")
+                print(f"grade_art attempt {attempt + 1} failed: {e}")
         raise last_error
 
     def grade_art_with_ref(self, assignment: str, img: bytes, ref: bytes):
@@ -331,12 +331,12 @@ class AtelierClient:
 
         last_error = None
         for attempt in range(3):
-            response = self.__generate(model, instructions, Grade.model_json_schema(), use_tools=False)
             try:
+                response = self.__generate(model, instructions, Grade.model_json_schema(), use_tools=False)
                 return Grade.model_validate_json(response.message.content)
-            except ValidationError as e:
+            except Exception as e:
                 last_error = e
-                print(f"grade_art_with_ref attempt {attempt + 1} failed to validate: {e}")
+                print(f"grade_art_with_ref attempt {attempt + 1} failed: {e}")
         raise last_error
 
     def generate_lesson_plan(self, topic: str, time_commit: str, skill: str, amount: int = 5) -> LessonPlan:
