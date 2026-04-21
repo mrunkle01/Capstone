@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Playfair_Display, DM_Sans } from "next/font/google";
-import { submitPretestImage, resolveAllPretestScores } from "@/lib/api/pretest";
+import { submitPretestImage, resolveGradingScores, startDashboardGeneration, pollDashboardGeneration } from "@/lib/api/pretest";
 import { updateProfile } from "@/lib/api/profile";
 import styles from "./pretest.module.css";
 
@@ -124,6 +124,7 @@ export default function PretestPage() {
     const [selectedGoal, setSelectedGoal] = useState(GOALS[0]);
     const [selectedTime, setSelectedTime] = useState(TIME_OPTIONS[1]);
     const [isGenerating, setIsGenerating] = useState(false);
+    const [dashboardReady, setDashboardReady] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [skillResult, setSkillResult] = useState<{ key: string; label: string; avg: number } | null>(null);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -192,42 +193,41 @@ export default function PretestPage() {
         }
     };
 
-    const handleFinalSubmit = async () => {
-        setIsGenerating(true);
-        setError(null);
-        setCurrentStep("loading");
-
+    const runGradingAndGenerate = async () => {
         try {
-            const { pretestScores } = await resolveAllPretestScores(jobIds, selectedGoal, selectedTime);
+            // Phase 1: poll the 4 grading jobs — show results as soon as they're done
+            const pretestScores = await resolveGradingScores(jobIds);
             const skill = computeSkillLevel(pretestScores);
             setSkillResult(skill);
             setPretestBreakdown(pretestScores);
             updateProfile({ skill_level: skill.key, artistic_goal: selectedGoal, time_commitment: selectedTime }).catch(() => {});
             setCurrentStep("results");
+
+            // Phase 2: kick off dashboard generation in background — button unlocks when done
+            const job_id = await startDashboardGeneration(pretestScores, selectedGoal, selectedTime);
+            await pollDashboardGeneration(job_id);
+            setDashboardReady(true);
         } catch {
             setIsGenerating(false);
-            setError("Something went wrong while building your plan. Please try again.");
+            setError("Something went wrong. Please try again.");
             setCurrentStep("preferences");
         }
     };
 
-    const handleRetryFromLoading = async () => {
+    const handleFinalSubmit = async () => {
+        setIsGenerating(true);
+        setDashboardReady(false);
+        setError(null);
+        setCurrentStep("loading");
+        runGradingAndGenerate();
+    };
+
+    const handleRetryFromLoading = () => {
         setError(null);
         setIsGenerating(true);
+        setDashboardReady(false);
         setCurrentStep("loading");
-
-        try {
-            const { pretestScores } = await resolveAllPretestScores(jobIds, selectedGoal, selectedTime);
-            const skill = computeSkillLevel(pretestScores);
-            setSkillResult(skill);
-            setPretestBreakdown(pretestScores);
-            updateProfile({ skill_level: skill.key, artistic_goal: selectedGoal, time_commitment: selectedTime }).catch(() => {});
-            setCurrentStep("results");
-        } catch {
-            setIsGenerating(false);
-            setError("Something went wrong while building your plan. Please try again.");
-            setCurrentStep("preferences");
-        }
+        runGradingAndGenerate();
     };
 
     if (currentStep === "loading") {
@@ -245,7 +245,7 @@ export default function PretestPage() {
                         <>
                             <div className={styles.spinner} />
                             <div className={styles.loadingTitle}>
-                                Analyzing your drawings and<br />building your personalized plan...
+                                Analyzing your drawings...
                             </div>
                             <div className={styles.loadingSubtitle}>
                                 This may take a minute or two.
@@ -264,11 +264,6 @@ export default function PretestPage() {
             stillLife: "Mini Still Life",
             thumbnail: "Thumbnail Sketch",
         };
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        function getRequirements(drawingData: Record<string, any>): { name: string; r_id: string; points: number }[] {
-            return Array.isArray(drawingData.requirements) ? drawingData.requirements : [];
-        }
 
         return (
             <div className={styles.outer}>
@@ -295,23 +290,12 @@ export default function PretestPage() {
                             {(["gesture", "lifeDrawing", "stillLife", "thumbnail"] as const).map((key) => {
                                 const data = pretestBreakdown[key];
                                 if (!data) return null;
-                                const reqs = getRequirements(data);
                                 return (
                                     <div key={key} className={styles.drawingCard}>
                                         <div className={styles.drawingCardHeader}>
                                             <div className={styles.drawingCardTitle}>{DRAWING_LABELS[key]}</div>
                                             <div className={styles.drawingCardScore}>{data.score ?? "—"}</div>
                                         </div>
-                                        {reqs.length > 0 && (
-                                            <ul className={styles.reqList}>
-                                                {reqs.map((req) => (
-                                                    <li key={req.r_id} className={styles.reqItem}>
-                                                        <span className={styles.reqName}>{req.name}</span>
-                                                        <span className={styles.reqScore}>{req.points} pts</span>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        )}
                                     </div>
                                 );
                             })}
@@ -319,16 +303,22 @@ export default function PretestPage() {
                     )}
 
                     <div className={styles.resultsNote}>
-                        Your personalized learning plan has been built around this level.
-                        Lessons will adapt as you improve.
+                        {dashboardReady
+                            ? "Your personalized learning plan is ready. Lessons will adapt as you improve."
+                            : "Building your personalized plan in the background..."}
                     </div>
 
                     <button
                         className={styles.btnPrimary}
                         onClick={() => router.push("/dashboard")}
-                        style={{ width: "100%" }}
+                        disabled={!dashboardReady}
+                        style={{ width: "100%", opacity: dashboardReady ? 1 : 0.45 }}
                     >
-                        Go to Dashboard
+                        {dashboardReady ? "Go to Dashboard" : (
+                            <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                                <span className={styles.spinnerSmall} /> Building your plan...
+                            </span>
+                        )}
                     </button>
                 </div>
             </div>

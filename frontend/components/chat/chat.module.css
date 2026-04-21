@@ -84,3 +84,48 @@
     0%, 80%, 100% { transform: translateY(0); }
     40% { transform: translateY(-6px); }
 }
+
+.confirmCard {
+    margin: 8px 0;
+    padding: 14px 16px;
+    background: #ede8df;
+    border: 0.5px solid #d8d0c0;
+    border-radius: 12px;
+}
+
+.confirmText {
+    font-size: 0.85rem;
+    color: #2d2d2a;
+    margin-bottom: 10px;
+}
+
+.confirmButtons {
+    display: flex;
+    gap: 8px;
+}
+
+.confirmYes {
+    flex: 1;
+    padding: 7px 0;
+    border-radius: 20px;
+    background: #b5995a;
+    color: #fff;
+    font-size: 0.8rem;
+    border: none;
+    cursor: pointer;
+}
+
+.confirmYes:hover { background: #9f8548; }
+
+.confirmNo {
+    flex: 1;
+    padding: 7px 0;
+    border-radius: 20px;
+    background: transparent;
+    color: #9a8e7a;
+    font-size: 0.8rem;
+    border: 0.5px solid #d8d0c0;
+    cursor: pointer;
+}
+
+.confirmNo:hover { background: #f0ece3; }

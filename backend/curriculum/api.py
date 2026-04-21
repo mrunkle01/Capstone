@@ -9,7 +9,8 @@ from .schemas import (RegisterSchema, UpdateProfileSchema, LearningGoalSchema, C
                       PretestResultSchema, PretestQuestionSchema, PretestQuestionOptionSchema,
                       SectionSchema, LessonSchema, UserLessonSchema, AssessmentSchema,
                       ReportCardSchema, ChatLogSchema, UserInSchema, LogResultsSchema,
-                      ProgressSchema, PretestGenerateSchema, UpdateAttributesSchema)
+                      ProgressSchema, PretestGenerateSchema, UpdateAttributesSchema,
+                      ChatConfirmSchema)
 api = NinjaAPI()
 # In-memory job store for async AI generation
 # Keys: job_id (str), Values: {"status": "pending"|"complete"|"error", "result": dict|None, "error": str|None}
@@ -336,7 +337,8 @@ def start_chat(request, data: ChatInputSchema):
 
     # Pass the username as user_id so AtelierClient gives each user
     # their own isolated instance and conversation history.
-    task = chat_task.delay(data.message, request.user.username)
+    context_dict = data.context.dict() if data.context else {}
+    task = chat_task.delay(data.message, request.user.username, context_dict)
     return 200, {"job_id": task.id}
 
 
@@ -344,7 +346,7 @@ def start_chat(request, data: ChatInputSchema):
 def check_chat(request, job_id: str):
     """
     Polls the status of a chat job.
-    Returns { status: "pending" | "complete" | "error", reply?: str }
+    Returns { status, reply?, action? }
     """
     from celery.result import AsyncResult
     task = AsyncResult(job_id)
@@ -352,7 +354,40 @@ def check_chat(request, job_id: str):
     if task.state == "PENDING":
         return 200, {"status": "pending"}
     elif task.state == "SUCCESS":
-        return 200, {"status": "complete", "reply": task.result.get("reply", "")}
+        result = task.result or {}
+        return 200, {"status": "complete", "reply": result.get("reply", ""), "action": result.get("action")}
     elif task.state == "FAILURE":
         return 200, {"status": "error", "error": str(task.result)}
     return 200, {"status": task.state}
+
+
+@api.post("/chat/confirm", response={200: dict, 400: dict, 401: dict})
+def confirm_chat_action(request, data: ChatConfirmSchema):
+    """
+    Applies a pending action the user has confirmed in the frontend.
+    Currently handles TIME_CHANGE — updates UserProfile.time_commitment.
+    """
+    if not request.user.is_authenticated:
+        return 401, {"message": "Must be logged in"}
+
+    from .models import ChatLog, UserProfile
+    try:
+        profile = UserProfile.objects.get(user=request.user)
+    except UserProfile.DoesNotExist:
+        return 400, {"message": "Profile not found"}
+
+    if data.action_type == "TIME_CHANGE":
+        time_value = data.data.get("time_value", "")
+        if not time_value:
+            return 400, {"message": "Missing time_value"}
+        profile.time_commitment = time_value
+        profile.save(update_fields=["time_commitment"])
+        ChatLog.objects.create(
+            user=profile,
+            context={},
+            action="TIME_CHANGE",
+            change_made=f"Updated time_commitment to: {time_value}",
+        )
+        return 200, {"status": "confirmed", "time_value": time_value}
+
+    return 400, {"message": f"Unknown action_type: {data.action_type}"}
