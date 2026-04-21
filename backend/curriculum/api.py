@@ -75,6 +75,8 @@ def get_current_profile(request):
     """Get current user's profile"""
     return {
         "username": request.user.username,
+        "email": request.user.email,
+        "member_since": request.user.date_joined.strftime("%B %Y"),
         "skill_level": request.user.profile.skill_level,
         "artistic_goal": request.user.profile.artistic_goal,
         "has_curriculum": request.user.profile.has_active_curriculum,
