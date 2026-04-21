@@ -1,4 +1,5 @@
-Can you grade my performance drawing this image according to the following assignment
+Can you grade my performance drawing this image according to the following assignment.
+{ref_note}
 {assignment}
 Score is a percentage of 0-100 represented by a float (i.e 0.5 for 50% and 1.0 for 100%).
 Provide the points I got for each requirement of the assignment in the requirements list of the grade. They should share

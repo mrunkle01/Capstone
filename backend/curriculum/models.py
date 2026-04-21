@@ -285,8 +285,8 @@ class ChatLog(models.Model):
         on_delete=models.CASCADE,
         related_name='chat_logs'
     )
-    context = models.TextField()
-    action = models.CharField(max_length=100)
+    context = models.JSONField(null=True, blank=True)
+    action = models.CharField(max_length=100, null=True, blank=True)
     change_made = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

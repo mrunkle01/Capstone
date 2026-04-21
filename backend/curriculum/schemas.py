@@ -110,6 +110,19 @@ class UpdateAttributesSchema(Schema):
     stillLife: float
     thumbnail: float
 
-# Chat endpoint — message sent by the user to the AI chatbot
+# Context sent with every chat message so the backend can enforce business rules
+class ChatContextSchema(Schema):
+    current_lesson_id: Optional[int] = None    # lesson order within section (1-indexed)
+    current_section_id: Optional[int] = None   # DashBoard row id
+    user_goal: str = ""
+    user_time_availability: str = ""
+
+# Message + context sent from frontend to /api/chat
 class ChatInputSchema(Schema):
     message: str
+    context: ChatContextSchema = ChatContextSchema()
+
+# Payload sent to /api/chat/confirm after user accepts a pending action
+class ChatConfirmSchema(Schema):
+    action_type: str       # "TIME_CHANGE" | "LESSON_SWAP"
+    data: dict = {}

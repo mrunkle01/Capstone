@@ -35,40 +35,38 @@ export async function pollGradingJob(job_id: string): Promise<Record<string, any
         const job = await poll.json();
         if (job.status === "complete") return job.data;
         if (job.status === "error") throw new Error(job.error || "AI grading failed");
-        // status === "pending" — keep polling
     }
 }
 
-export async function resolveAllPretestScores(
-    jobIds: string[],
-    goal: string,
-    timeCommitment: string
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-): Promise<{ dashboard: Record<string, unknown>; pretestScores: Record<string, any> }> {
-    // Poll all 4 jobs in at same time
+export async function resolveGradingScores(jobIds: string[]): Promise<Record<string, any>> {
     const results = await Promise.all(jobIds.map((id) => pollGradingJob(id)));
-
-    const pretestScores = {
+    return {
         gesture: results[0],
         lifeDrawing: results[1],
         stillLife: results[2],
         thumbnail: results[3],
     };
-    // Hit the generate endpoint with pretest body
+}
+
+export async function startDashboardGeneration(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    pretestScores: Record<string, any>,
+    goal: string,
+    timeCommitment: string
+): Promise<string> {
     const res = await fetch(`${API}/api/generate/pretest`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            pretest_scores: pretestScores,
-            goal,
-            time_commitment: timeCommitment,
-        }),
+        body: JSON.stringify({ pretest_scores: pretestScores, goal, time_commitment: timeCommitment }),
     });
     if (!res.ok) throw new Error("Failed to start dashboard generation");
-
     const { job_id } = await res.json();
+    return job_id;
+}
 
+export async function pollDashboardGeneration(job_id: string): Promise<void> {
     while (true) {
         await new Promise((r) => setTimeout(r, 5000));
         const poll = await fetch(`${API}/api/generate/status/${job_id}`, {
@@ -77,8 +75,20 @@ export async function resolveAllPretestScores(
         if (!poll.ok) throw new Error("Failed to check generation status");
 
         const job = await poll.json();
-        if (job.status === "complete") return { dashboard: job.data, pretestScores };
+        if (job.status === "complete") return;
         if (job.status === "error") throw new Error(job.error || "Dashboard generation failed");
-        // status === "pending" — keep polling
     }
+}
+
+// Kept for backwards compatibility
+export async function resolveAllPretestScores(
+    jobIds: string[],
+    goal: string,
+    timeCommitment: string
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+): Promise<{ dashboard: Record<string, unknown>; pretestScores: Record<string, any> }> {
+    const pretestScores = await resolveGradingScores(jobIds);
+    const job_id = await startDashboardGeneration(pretestScores, goal, timeCommitment);
+    await pollDashboardGeneration(job_id);
+    return { dashboard: {}, pretestScores };
 }

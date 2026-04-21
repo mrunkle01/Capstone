@@ -122,7 +122,14 @@ class AtelierClient:
         return cls._instances[user_id_ref]
 
     def __init__(self, user_id: str):
-        # Create client
+        # Guard prevents re-initialization on subsequent calls to AtelierClient(user_id)
+        # for an already-cached instance (Python always calls __init__ even when __new__
+        # returns an existing object).
+        if hasattr(self, '_initialized'):
+            return
+        self._initialized = True
+        self._last_action = None  # set by action tools, read by async_chat
+
         load_dotenv()
         self.__client = Client(
             host="https://ollama.com",
@@ -130,23 +137,35 @@ class AtelierClient:
         )
         self.__id_ref = user_id
         self.memory = AgentMemory(self.__id_ref)
-        # Establish AI properties
-        self.__tool_lookup = {'web_search': self.__client.web_search, 'store_memory': self.memory.store_memory,
-                              'retrieve_memory': self.memory.retrieve_memory,
-                              'append_instr_file': self.__append_instr_file}
-        self.__tools = [self.memory.store_memory, self.memory.retrieve_memory, self.__client.web_search,
-                        self.__append_instr_file]
+
+        # Action tools let the LLM signal structured intents (LESSON_SWAP, TIME_CHANGE)
+        # without regex. The LLM calls these when it understands the user wants an action.
+        self.__tool_lookup = {
+            'web_search': self.__client.web_search,
+            'store_memory': self.memory.store_memory,
+            'retrieve_memory': self.memory.retrieve_memory,
+            'append_instr_file': self.__append_instr_file,
+            'request_lesson_swap': self.request_lesson_swap,
+            'request_time_change': self.request_time_change,
+        }
+        self.__tools = [
+            self.memory.store_memory,
+            self.memory.retrieve_memory,
+            self.__client.web_search,
+            self.__append_instr_file,
+            self.request_lesson_swap,
+            self.request_time_change,
+        ]
+
         with open(personality_path, 'r') as file:
             pers_data = file.read()
         file.close()
         self.__personality = {'role': 'system', 'content': pers_data}
         self.__messages = []
         self.__messages.append(self.__personality)
-        self.__messages.append({'role': 'system', 'content': f"The user's username is {user_id}"}) # Replace with user info fetch
+        self.__messages.append({'role': 'system', 'content': f"The user's username is {user_id}"})
         self.__initialize_context(["Art Interests", "Goals", "Favorite Art", "Career", user_id])
-        self.__options = {
-            'temperature': 0.8,
-        }
+        self.__options = {'temperature': 0.8}
         self.__conv_turns = 0
         self.__mem_freq = 5
 
@@ -171,13 +190,22 @@ class AtelierClient:
 
     def __generate(self, model: str, instr, form, use_tools: bool = True) -> ChatResponse:
         self.__messages.append(instr)
-        tools = self.__tools if use_tools else []
-        final_res = self.__client.chat(model=model, messages=self.__messages, tools=tools, format=form,
-                                 options=self.__options)
 
-        if use_tools and self.__exec_tools(final_res):
-            final_res = self.__client.chat(model=model, messages=self.__messages, format=form,
-                                              options=self.__options)
+        if use_tools:
+            final_res = self.__client.chat(model=model, messages=self.__messages, tools=self.__tools,
+                                           format=form, options=self.__options)
+            if self.__exec_tools(final_res):
+                final_res = self.__client.chat(model=model, messages=self.__messages, format=form,
+                                               options=self.__options)
+        else:
+            # Append a one-shot override (not persisted to self.__messages) so the model
+            # doesn't try to emit tool calls as text when tools are disabled.
+            messages = self.__messages + [{
+                'role': 'system',
+                'content': 'Respond ONLY with valid JSON matching the provided schema. Do not call any tools, perform web searches, or include any text outside the JSON object.'
+            }]
+            final_res = self.__client.chat(model=model, messages=messages, tools=[],
+                                           format=form, options=self.__options)
 
         if final_res.message.content:
             self.update_context(final_res.message.content)
@@ -202,9 +230,33 @@ class AtelierClient:
         self.memory.store_memory([res.message.content], {"type": "conversation_summary"})
         self.__conv_turns = 0
 
-    async def async_chat(self, prompt: str):
-        # model = 'qwen3.5:cloud'
+    def request_lesson_swap(self) -> str:
+        """
+        Call this when the user wants a different version of their current lesson —
+        including when they say it is too easy, repetitive, or want a fresh approach.
+        The actual swap is handled by backend business logic after this tool fires.
+        """
+        self._last_action = {"action": "LESSON_SWAP"}
+        return "Lesson swap request registered. Tell the user you are arranging a new version of their lesson."
+
+    def request_time_change(self, time_value: str) -> str:
+        """
+        Call this when the user wants to change their daily practice time.
+        Parse the user's intended time and pass one of these exact strings:
+        '15-30 min/day', '1 hour/day', '2+ hours/day'.
+        """
+        self._last_action = {"action": "TIME_CHANGE", "time_value": time_value}
+        return f"Time change to {time_value} registered. Tell the user you will confirm the change."
+
+    async def async_chat(self, prompt: str) -> dict:
+        """
+        Runs a conversational turn and returns both the reply text and any structured
+        action the LLM decided to trigger (via request_lesson_swap / request_time_change).
+        Returns: { "reply": str, "action": dict | None }
+        """
         model = 'qwen3.5:397b-cloud'
+        self._last_action = None  # reset so stale actions from previous turns don't leak
+
         self.__messages.append({'role': 'user', 'content': prompt})
         final_res = self.__client.chat(model=model, messages=self.__messages, tools=self.__tools,
                                        options=self.__options)
@@ -216,7 +268,7 @@ class AtelierClient:
             self.update_context(final_res.message.content)
 
         self.__summarize_interaction()
-        return final_res
+        return {"reply": final_res.message.content, "action": self._last_action}
 
     def update_context(self, context: str):
         self.__messages.append({'role': 'assistant', 'content': context})
@@ -245,6 +297,7 @@ class AtelierClient:
         with open(art_grading_path, 'r') as file:
             file_data = file.read()
         file_data = file_data.replace('{assignment}', assignment)
+        file_data = file_data.replace('{ref_note}', '')
 
         instructions = {'role': 'user', 'content': file_data, 'images': [img_final]}
 
@@ -269,6 +322,10 @@ class AtelierClient:
         with open(art_grading_path, 'r') as file:
             file_data = file.read()
         file_data = file_data.replace('{assignment}', assignment)
+        file_data = file_data.replace(
+            '{ref_note}',
+            'The FIRST image is the student\'s drawing to be graded. The SECOND image is the reference image provided for comparison. Grade only the first image.'
+        )
 
         instructions = {'role': 'user', 'content': file_data, 'images': [img_final, ref_final]}
 
@@ -317,20 +374,24 @@ class AtelierClient:
         #     }
         # ])
 
-        with open('lesson_plan_instructions', 'r') as file:
+        with open(lesson_plan_path, 'r') as file:
             file_data = file.read()
         file_data = file_data.replace('{topic}', topic)
         file_data = file_data.replace('{time_commit}', time_commit)
         file_data = file_data.replace('{skill}', skill)
 
         instructions = {'role': 'user', 'content': file_data}
-        response = self.__generate(model, instructions, Lesson.model_json_schema())
-        try:
-            lesson: Lesson = Lesson.model_validate_json(response.message.content)
-            # Replace memory in storage
-            return lesson
-        except ValidationError as e:
-            print(e)
+
+        last_error = None
+        for attempt in range(3):
+            response = self.__generate(model, instructions, LessonPlan.model_json_schema(), use_tools=False)
+            try:
+                plan = LessonPlan.model_validate_json(response.message.content)
+                return plan.lessons[0]
+            except (ValidationError, IndexError) as e:
+                last_error = e
+                print(f"generate_lesson attempt {attempt + 1} failed: {e}")
+        raise last_error
 
 
 class AgentMemory:

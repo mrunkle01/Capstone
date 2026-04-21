@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState} from "react";
+import { useEffect, useRef, useState } from "react";
 import ChatMessage from "./ChatMessage";
-import { ChatMessage as ChatMessageType } from "@/lib/types/chat";
-import { sendChatMessage } from "@/lib/api/chat";
+import { ChatMessage as ChatMessageType, ChatContext } from "@/lib/types/chat";
+import { sendChatMessage, confirmChatAction, pollJobUntilDone } from "@/lib/api/chat";
+import { loadUser } from "@/lib/api/profile";
 import styles from "./chat.module.css";
 
 interface ChatPanelProps {
@@ -16,12 +17,27 @@ export default function ChatPanel({ isOpen, onClose }: ChatPanelProps) {
     const [messages, setMessages] = useState<ChatMessageType[]>([]);
     const [input, setInput] = useState("");
     const [waiting, setWaiting] = useState(false);
+    const [chatContext, setChatContext] = useState<ChatContext>({});
+    // Tracks a pending TIME_CHANGE confirmation — { msgId, time_value }
+    const [pendingConfirm, setPendingConfirm] = useState<{ msgId: string; time_value: string } | null>(null);
 
     useEffect(() => {
         if (isOpen && messagesRef.current) {
             messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
         }
     }, [isOpen, messages]);
+
+    // Load user context once when the panel opens
+    useEffect(() => {
+        if (!isOpen) return;
+        loadUser().then((user) => {
+            if (!user) return;
+            setChatContext({
+                user_goal: user.artistic_goal ?? "",
+                user_time_availability: user.time_commitment ?? "",
+            });
+        });
+    }, [isOpen]);
 
     async function handleSubmit() {
         const trimmed = input.trim();
@@ -39,14 +55,44 @@ export default function ChatPanel({ isOpen, onClose }: ChatPanelProps) {
         setWaiting(true);
 
         try {
-            const reply = await sendChatMessage(trimmed);
-            setMessages(prev => [...prev, {
+            const result = await sendChatMessage(trimmed, chatContext);
+            const aiMsg: ChatMessageType = {
                 id: Date.now().toString(),
                 role: "assistant",
-                content: reply,
+                content: result.reply,
                 actionStatus: null,
                 timestamp: new Date(),
-            }]);
+                action: result.action,
+            };
+            setMessages(prev => [...prev, aiMsg]);
+
+            // If lesson swap approved, keep loading until background generation finishes
+            if (
+                result.action?.type === "LESSON_SWAP" &&
+                result.action.status === "approved" &&
+                result.action.data?.generation_job_id
+            ) {
+                await pollJobUntilDone(result.action.data.generation_job_id as string);
+                setMessages(prev => [...prev, {
+                    id: Date.now().toString(),
+                    role: "assistant",
+                    content: "Your lesson has been updated — refresh your dashboard to see it.",
+                    actionStatus: null,
+                    timestamp: new Date(),
+                }]);
+            }
+
+            // Surface a confirmation card if the AI is requesting a time change
+            if (
+                result.action?.type === "TIME_CHANGE" &&
+                result.action.status === "pending_confirmation" &&
+                result.action.data?.time_value
+            ) {
+                setPendingConfirm({
+                    msgId: aiMsg.id,
+                    time_value: result.action.data.time_value as string,
+                });
+            }
         } catch {
             setMessages(prev => [...prev, {
                 id: Date.now().toString(),
@@ -58,6 +104,48 @@ export default function ChatPanel({ isOpen, onClose }: ChatPanelProps) {
         } finally {
             setWaiting(false);
         }
+    }
+
+    async function handleConfirm() {
+        if (!pendingConfirm) return;
+        try {
+            await confirmChatAction("TIME_CHANGE", { time_value: pendingConfirm.time_value });
+            setMessages(prev => prev.map(m =>
+                m.id === pendingConfirm.msgId ? { ...m, actionStatus: "accepted" as const } : m
+            ));
+            setMessages(prev => [...prev, {
+                id: Date.now().toString(),
+                role: "assistant",
+                content: `Done — your practice time has been updated to ${pendingConfirm.time_value}.`,
+                actionStatus: null,
+                timestamp: new Date(),
+            }]);
+        } catch {
+            setMessages(prev => [...prev, {
+                id: Date.now().toString(),
+                role: "assistant",
+                content: "Couldn't save that change. Please try again.",
+                actionStatus: null,
+                timestamp: new Date(),
+            }]);
+        } finally {
+            setPendingConfirm(null);
+        }
+    }
+
+    function handleDeny() {
+        if (!pendingConfirm) return;
+        setMessages(prev => prev.map(m =>
+            m.id === pendingConfirm.msgId ? { ...m, actionStatus: "rejected" as const } : m
+        ));
+        setMessages(prev => [...prev, {
+            id: Date.now().toString(),
+            role: "assistant",
+            content: "No problem — your practice time stays the same.",
+            actionStatus: null,
+            timestamp: new Date(),
+        }]);
+        setPendingConfirm(null);
     }
 
     function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
@@ -95,6 +183,17 @@ export default function ChatPanel({ isOpen, onClose }: ChatPanelProps) {
                     {waiting && (
                         <div className={styles.typingIndicator}>
                             <span /><span /><span />
+                        </div>
+                    )}
+                    {pendingConfirm && (
+                        <div className={styles.confirmCard}>
+                            <p className={styles.confirmText}>
+                                Update practice time to <strong>{pendingConfirm.time_value}</strong>?
+                            </p>
+                            <div className={styles.confirmButtons}>
+                                <button onClick={handleConfirm} className={styles.confirmYes}>Confirm</button>
+                                <button onClick={handleDeny} className={styles.confirmNo}>Cancel</button>
+                            </div>
                         </div>
                     )}
                 </div>
