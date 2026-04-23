@@ -4,7 +4,7 @@ import datetime
 from celery import shared_task
 from dotenv import load_dotenv
 from ollama import Client
-from .atelier_agent import AtelierClient, Lesson
+from .atelier_agent_old import AtelierClient, Lesson
 
 _REF_DIR = os.path.join(os.path.dirname(__file__), "ref_images")
 

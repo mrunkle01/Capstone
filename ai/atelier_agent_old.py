@@ -124,14 +124,6 @@ class NoResponseError(Exception):
         return f"{self.message})"
 
 
-def get_current_date() -> str:
-    """
-    Get current date and time
-    :return: the current date and time
-    """
-    return str(datetime.datetime.now())
-
-
 class AtelierClient:
     def __new__(cls, user_id_ref: str):
         if not hasattr(cls, '__inst'):
@@ -190,12 +182,11 @@ class AtelierClient:
         try:
             self.__messages.append(instr)
             final_res = self.__client.chat(model=model, messages=self.__messages, tools=self.__tools, format=form,
-                                 think=True, options=self.__options)
-            print(final_res.message.thinking)
+                                 options=self.__options)
+
             if self.__exec_tools(final_res):
-                final_res = self.__client.chat(model=model, messages=self.__messages, format=form, think=True,
+                final_res = self.__client.chat(model=model, messages=self.__messages, format=form,
                                               options=self.__options)
-            print(final_res.message.thinking)
 
             if final_res.message.content:
                 self.update_context(final_res.message.content)
@@ -224,14 +215,16 @@ class AtelierClient:
         self.__conv_turns = 0
 
     async def async_chat(self, prompt: str):
-        model = 'qwen3.5:cloud'
+        # model = 'qwen3.5:cloud'
+        model = 'qwen3.5:397b-cloud'
         self.__messages.append({'role': 'user', 'content': prompt})
         final_res = self.__client.chat(model=model, messages=self.__messages, tools=self.__tools,
                                        think=True, options=self.__options)
         print(final_res.message.thinking)
         if self.__exec_tools(final_res):
             final_res = self.__client.chat(model=model, messages=self.__messages, think=True, options=self.__options)
-        print(final_res.message.thinking)
+            print(final_res.message.thinking)
+
         if final_res.message.content:
             self.update_context(final_res.message.content)
 
@@ -249,39 +242,59 @@ class AtelierClient:
         """
         instr: string to append to instructions file
         """
-        with open("additional_instructions.txt", "a") as file:
+        with open("personality.txt", "a") as file:
             file.write(instr)
 
-    def grade_art(self, assignment: str, img: bytes, ref: bytes = None, skill: str = "") -> Grade:
+    def grade_art(self, assignment: str, img: bytes) -> Grade:
         # model = 'qwen3-vl:235b-cloud'
         model = 'qwen3.5:397b-cloud'
-
         self.__initialize_context([
             {
                 "query": assignment,
-                "metadata": [{"type": "assessment"}, {"skill": skill}]
+                "metadata": [{"type": "assessment"}]
             }
         ])
 
         img_final = base64.b64encode(img).decode()
-        ref_final = ref
 
-        with open('art_grading_instructions.txt', 'r') as file:
+        with open('art_grading_instructions', 'r') as file:
             file_data = file.read()
         file_data = file_data.replace('{assignment}', assignment)
 
-        instructions = {}
-        if ref_final:
-            ref_final = base64.b64encode(ref).decode()
-            instructions = {'role': 'user', 'content': file_data, 'images': [img_final, ref_final]}
-        else:
-            instructions = {'role': 'user', 'content': file_data, 'images': [img_final]}
+        instructions = {'role': 'user', 'content': file_data, 'images': [img_final]}
         response = self.__generate(model, instructions, Grade.model_json_schema())
         # No response error
         try:
             grade: Grade = Grade.model_validate_json(response.message.content)
             self.memory.store_memory([{"text": f"Assignment:\n {assignment} \n Grade:\n {grade.to_string()}",
-                                       "metadata": {"type": "assessment", "skill": skill}}])
+                                       "metadata": {"type": "assessment"}}])
+            return grade
+        except ValidationError as e:
+            print(e)
+
+    def grade_art_with_ref(self, assignment: str, img: bytes, ref: bytes):
+        # model = 'qwen3-vl:235b-cloud'
+        model = 'qwen3.5:397b-cloud'
+        self.__initialize_context([
+            {
+                "query": assignment,
+                "metadata": [{"type": "assessment"}]
+            }
+        ])
+
+        img_final = base64.b64encode(img).decode()
+        ref_final = base64.b64encode(ref).decode()
+
+        with open('art_grading_instructions', 'r') as file:
+            file_data = file.read()
+        file_data = file_data.replace('{assignment}', assignment)
+
+        instructions = {'role': 'user', 'content': file_data, 'images': [img_final, ref_final]}
+        response = self.__generate(model, instructions, Grade.model_json_schema())
+        try:
+            grade: Grade = Grade.model_validate_json(response.message.content)
+            self.memory.store_memory([{"text": f"Assignment:\n {assignment} \n Grade:\n {grade.to_string()}",
+                                       "metadata": {"type": "assessment"}}])
             return grade
         except ValidationError as e:
             print(e)
@@ -301,7 +314,7 @@ class AtelierClient:
             }
         ])
 
-        with open('lesson_plan_instructions.txt', 'r') as file:
+        with open('lesson_plan_instructions', 'r') as file:
             file_data = file.read()
         file_data = file_data.replace('{topic}', topic)
         file_data = file_data.replace('{time_commit}', time_commit)
@@ -312,14 +325,13 @@ class AtelierClient:
         response = self.__generate(model, instructions, LessonPlan.model_json_schema())
         try:
             lesson_plan: LessonPlan = LessonPlan.model_validate_json(response.message.content)
-            self.memory.store_memory([{"text": lesson_plan.to_string(), "metadata": {"type": "lesson_plan",
-                                                                                     "skill": topic}}])
+            self.memory.store_memory([{"text": lesson_plan.to_string(), "metadata": {"type": "lesson_plan"}}])
             # Verify lesson time and assessment points
             return lesson_plan
         except ValidationError as e:
             print(e)
 
-    def generate_lesson(self, topic: str, time_commit: str, skill: str) -> Lesson:
+    def generate_lesson(self, topic: str, time_commit: str, skill: str):
         model = 'qwen3.5:397b-cloud'
         self.__initialize_context([
             {
@@ -334,7 +346,7 @@ class AtelierClient:
             }
         ])
 
-        with open('lesson_plan_instructions.txt', 'r') as file:
+        with open('lesson_plan_instructions', 'r') as file:
             file_data = file.read()
         file_data = file_data.replace('{topic}', topic)
         file_data = file_data.replace('{time_commit}', time_commit)
@@ -344,21 +356,18 @@ class AtelierClient:
         response = self.__generate(model, instructions, Lesson.model_json_schema())
         try:
             lesson: Lesson = Lesson.model_validate_json(response.message.content)
-            self.memory.store_memory([{"text": lesson.to_string(), "metadata": {"type": "lesson", "skill": topic}}])
+            # Replace memory in storage
             return lesson
         except ValidationError as e:
             print(e)
 
-    def modify_lesson(self, lesson: str, mod: str) -> Lesson:
-        model = 'qwen3.5:397b-cloud'
-        instr = {"role": "user", "content": f"Can you modify this lesson \n{lesson}\n based on this suggestion: {mod}."
-                                            f"And make sure you remember that you did."}
-        response = self.__generate(model, instr, Lesson.model_json_schema())
-        try:
-            lesson: Lesson = Lesson.model_validate_json(response.message.content)
-            return lesson
-        except ValidationError as e:
-            print(e)
+
+def get_current_date() -> str:
+    """
+    Get current date and time
+    :return: the current date and time
+    """
+    return str(datetime.datetime.now())
 
 
 class AgentMemory:
@@ -408,7 +417,7 @@ class AgentMemory:
                 metadatas=mem['metadata'],
                 ids=self.__generate_id(mem['text'])
             )
-            texts += mem['text'] + " " + str(date) + " "
+            texts += mem['text'] + " " + str(date)
 
         print(f"Pikaso remembered: {texts}...")
         return f"Remembered {texts}"
@@ -451,8 +460,6 @@ class AgentMemory:
             if result['documents']:
                 for i in range(len(result['documents'][0])):
                     memories += f"{result['documents'][0][i]} {str(result['metadatas'][0][i])}..."
-            if memories == "":
-                memories = "Nothing recalled"
 
         # Remove duplicates
 
