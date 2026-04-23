@@ -119,6 +119,33 @@ class NoResponseError(Exception):
     """
     def __init__(self, message):
         super().__init__(message)
+        self.message = message
+
+    def __str__(self):
+        return f"{self.message})"
+
+
+class MissingArgumentError(Exception):
+    """
+        Exception raised when an argument is missing from function call
+    """
+
+    def __init__(self, message):
+        super().__init__(message)
+        self.message = message
+
+    def __str__(self):
+        return f"{self.message})"
+
+
+class InvalidGradeError(Exception):
+    """
+        Exception raised when a grade has invalid properties
+    """
+
+    def __init__(self, message):
+        super().__init__(message)
+        self.message = message
 
     def __str__(self):
         return f"{self.message})"
@@ -160,7 +187,7 @@ class AtelierClient:
         self.__personality = {'role': 'system', 'content': pers_data}
         self.__messages = []
         self.__messages.append(self.__personality)
-        self.__messages.append({'role': 'system', 'content': f"The user's username is {user_id}"}) # Replace with user info fetch
+        self.__messages.append({'role': 'system', 'content': f"The user's username is {user_id}"})
         self.__options = {
             'temperature': 0.8,
         }
@@ -169,6 +196,7 @@ class AtelierClient:
 
     def __del__(self):
         # self.__summarize_interaction()
+        self.clear_messages()
         print("Closing Client")
 
     def __exec_tools(self, res: ChatResponse) -> bool:
@@ -177,14 +205,18 @@ class AtelierClient:
             for tool_call in res.message.tool_calls:
                 func = self.__tool_lookup.get(tool_call.function.name)
                 if func:
-                    args = tool_call.function.arguments
-                    result = func(**args)
-                    print('Result: ', str(result)[:200]+'...')
-                    self.__messages.append({'role': 'tool', 'content': str(result)[:2000 * 4] + " " +
+                    try:
+                        args = tool_call.function.arguments
+                        result = func(**args)
+                        print('Result: ', str(result)[:200]+'...')
+                        self.__messages.append({'role': 'tool', 'content': str(result)[:2000 * 4] + " " +
                                             get_current_date(), 'tool_name': tool_call.function.name})
-            return True
-        else:
-            return False
+                    except (ValueError, TypeError, MissingArgumentError) as e:
+                        print(e)
+                        self.inform_error(e)
+                return True
+            else:
+                return False
 
     def __generate(self, model: str, instr, form) -> ChatResponse:
         try:
@@ -280,11 +312,14 @@ class AtelierClient:
         # No response error
         try:
             grade: Grade = Grade.model_validate_json(response.message.content)
+            if grade.score * 100 > 100:
+                raise InvalidGradeError("Score is not a valid float between 0.0 and 1.0")
             self.memory.store_memory([{"text": f"Assignment:\n {assignment} \n Grade:\n {grade.to_string()}",
                                        "metadata": {"type": "assessment", "skill": skill}}])
             return grade
-        except ValidationError as e:
+        except (ValidationError, InvalidGradeError) as e:
             print(e)
+            self.inform_error(e)
 
     def generate_lesson_plan(self, topic: str, time_commit: str, skill: str, amount: int = 5) -> LessonPlan:
         model = 'qwen3.5:397b-cloud'
@@ -318,6 +353,7 @@ class AtelierClient:
             return lesson_plan
         except ValidationError as e:
             print(e)
+            self.inform_error(e)
 
     def generate_lesson(self, topic: str, time_commit: str, skill: str) -> Lesson:
         model = 'qwen3.5:397b-cloud'
@@ -348,6 +384,7 @@ class AtelierClient:
             return lesson
         except ValidationError as e:
             print(e)
+            self.inform_error(e)
 
     def modify_lesson(self, lesson: str, mod: str) -> Lesson:
         model = 'qwen3.5:397b-cloud'
@@ -359,6 +396,17 @@ class AtelierClient:
             return lesson
         except ValidationError as e:
             print(e)
+            self.inform_error(e)
+
+    def inform_error(self, error):
+        self.__messages.append({"role": "system", "content": error})
+
+    def clear_messages(self):
+        self.__messages = []
+
+
+def generate_id(text: str) -> str:
+    return hashlib.md5(text.encode()).hexdigest()
 
 
 class AgentMemory:
@@ -370,9 +418,6 @@ class AgentMemory:
             name="agent_memories",
             metadata={"hnsw:space": "cosine"}
         )
-
-    def __generate_id(self, text: str) -> str:
-        return hashlib.md5(text.encode()).hexdigest()
 
     def store_memory(self, memories: list[dict]) -> str:
         """Store a piece of information in long_term memory
@@ -406,7 +451,7 @@ class AgentMemory:
                 embeddings=embeddings['embeddings'],
                 documents=mem["text"],
                 metadatas=mem['metadata'],
-                ids=self.__generate_id(mem['text'])
+                ids=generate_id(mem['text'])
             )
             texts += mem['text'] + " " + str(date) + " "
 
