@@ -83,26 +83,25 @@ export default function ChatPanel({ isOpen, onClose }: ChatPanelProps) {
             }
 
             // Surface a confirmation card if the AI is requesting a time change
-            if (
-                result.action?.type === "TIME_CHANGE" &&
+            const timeAction = result.action?.type === "TIME_CHANGE" &&
                 result.action.status === "pending_confirmation" &&
                 result.action.data?.time_value
-            ) {
-                const requested = result.action.data.time_value.toString().split("/")[0].trim().toLowerCase();
+                ? result.action
+                : null;
+            if (timeAction) {
+                const timeValue = timeAction.data!.time_value as string;
+                const requested = timeValue.split("/")[0].trim().toLowerCase();
                 const current = (chatContext.user_time_availability || "").split("/")[0].trim().toLowerCase();
                 if (requested === current) {
                     setMessages(prev => [...prev, {
                         id: Date.now().toString(),
                         role: "assistant",
-                        content: `You're already practicing ${result.action.data.time_value} — no change needed.`,
+                        content: `You're already practicing ${timeValue} — no change needed.`,
                         actionStatus: null,
                         timestamp: new Date(),
                     }]);
                 } else {
-                    setPendingConfirm({
-                        msgId: aiMsg.id,
-                        time_value: result.action.data.time_value as string,
-                    });
+                    setPendingConfirm({ msgId: aiMsg.id, time_value: timeValue });
                 }
             }
         } catch {
