@@ -616,6 +616,14 @@
 .d-section-bar:hover {
     background: #E5E1D8;
 }
+.d-section-bar-future {
+    opacity: 0.45;
+    cursor: default;
+    pointer-events: none;
+}
+.d-section-bar-future:hover {
+    background: #EDEAE2;
+}
 .d-section-bar-left {
     display: flex;
     align-items: center;

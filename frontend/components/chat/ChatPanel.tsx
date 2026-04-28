@@ -88,10 +88,22 @@ export default function ChatPanel({ isOpen, onClose }: ChatPanelProps) {
                 result.action.status === "pending_confirmation" &&
                 result.action.data?.time_value
             ) {
-                setPendingConfirm({
-                    msgId: aiMsg.id,
-                    time_value: result.action.data.time_value as string,
-                });
+                const requested = result.action.data.time_value.toString().split("/")[0].trim().toLowerCase();
+                const current = (chatContext.user_time_availability || "").split("/")[0].trim().toLowerCase();
+                if (requested === current) {
+                    setMessages(prev => [...prev, {
+                        id: Date.now().toString(),
+                        role: "assistant",
+                        content: `You're already practicing ${result.action.data.time_value} — no change needed.`,
+                        actionStatus: null,
+                        timestamp: new Date(),
+                    }]);
+                } else {
+                    setPendingConfirm({
+                        msgId: aiMsg.id,
+                        time_value: result.action.data.time_value as string,
+                    });
+                }
             }
         } catch {
             setMessages(prev => [...prev, {

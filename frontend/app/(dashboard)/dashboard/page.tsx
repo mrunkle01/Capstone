@@ -8,6 +8,7 @@ import { loadDashboard, generateSections } from "@/lib/api/dashboard";
 import { useDashboardContext } from "@/lib/context/DashboardContext";
 import Greeting from "@/components/dashboard/Greeting";
 import LessonList from "@/components/dashboard/LessonList";
+import SectionPlaceholder from "@/components/dashboard/SectionPlaceholder";
 import DashboardSkeleton from "./loading";
 
 function DashboardContent() {
@@ -136,6 +137,8 @@ function DashboardContent() {
                     />
                 );
             })}
+            <SectionPlaceholder order={sections.length + 1} />
+            <SectionPlaceholder order={sections.length + 2} />
         </div>
     );
 }
