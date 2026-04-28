@@ -6,11 +6,13 @@ import { logoutUser } from "@/lib/api/auth";
 import {loadUser} from "@/lib/api/profile";
 import {useEffect, useState} from "react";
 import {User} from "@/lib/types/profile"
+import { useChatOverlay } from "@/components/chat/ChatOverlayProvider";
 export default function Sidebar() {
     const pathname = usePathname();
     const searchParams = useSearchParams();
     const [user, setUser] = useState<User | null>(null)
     const router = useRouter();
+    const { openChat } = useChatOverlay();
     useEffect(() => {
         loadUser().then(setUser);
     }, [pathname]);
@@ -36,7 +38,6 @@ export default function Sidebar() {
     const navItems = [
         { href: dashboardHref, label: "Dashboard", isActive: onDashboard && expandLesson !== "current" },
         { href: `${dashboardHref}${dashboardHref.includes("?") ? "&" : "?"}expandLesson=current`, label: "Current lesson", isActive: onDashboard && expandLesson === "current" },
-        { href: "/chat", label: "Ask AI", isActive: pathname === "/chat" },
         { href: "/profile", label: "Profile", isActive: pathname === "/profile" },
     ];
 
@@ -61,6 +62,13 @@ export default function Sidebar() {
                         {item.label}
                     </Link>
                 ))}
+                <button
+                    onClick={openChat}
+                    className="d-nav-item"
+                    style={{ background: "none", border: "none", cursor: "pointer", textAlign: "left", width: "100%" }}
+                >
+                    Ask AI
+                </button>
             </nav>
 
             <div className="d-sidebar-footer">

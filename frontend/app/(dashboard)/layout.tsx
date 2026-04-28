@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { Playfair_Display } from "next/font/google";
 import Sidebar from "@/components/dashboard/SideBar";
 import { DashboardProvider } from "@/lib/context/DashboardContext";
+import ChatOverlayProvider from "@/components/chat/ChatOverlayProvider";
 
 const playfair = Playfair_Display({
     subsets: ["latin"],
@@ -16,14 +17,16 @@ type Props = {
 export default function DashboardLayout({children}: Props) {
     return (
         <DashboardProvider>
-            <div className={`flex min-h-screen ${playfair.variable}`}>
-                <Suspense>
-                    <Sidebar/>
-                </Suspense>
-                <div className="flex-1">
-                    {children}
+            <ChatOverlayProvider>
+                <div className={`flex min-h-screen ${playfair.variable}`}>
+                    <Suspense>
+                        <Sidebar/>
+                    </Suspense>
+                    <div className="flex-1">
+                        {children}
+                    </div>
                 </div>
-            </div>
+            </ChatOverlayProvider>
         </DashboardProvider>
     )
 }

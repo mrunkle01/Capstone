@@ -53,7 +53,6 @@ export default function ResultPage() {
         setGenerating(true);
         setGenerateError(null);
         try {
-            // Load the current section and user profile to build context
             const [sectionData, profile] = await Promise.all([
                 loadLatestSection(),
                 loadUser(),
@@ -64,18 +63,9 @@ export default function ResultPage() {
                 return;
             }
 
-            const { topic, amount } = buildNextSectionParams(
-                result.score,
-                result.feedback,
-                sectionData,
-            );
-
+            const { topic, amount } = buildNextSectionParams(result.score, result.feedback, sectionData);
             await generateSections(
-                {
-                    topic,
-                    timeCommit: profile.time_commitment || "1 hr",
-                    skillLevel: profile.skill_level || "beginner",
-                },
+                { topic, timeCommit: profile.time_commitment || "1 hr", skillLevel: profile.skill_level || "beginner" },
                 amount,
             );
 

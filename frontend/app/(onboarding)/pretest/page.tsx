@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Playfair_Display, DM_Sans } from "next/font/google";
 import { submitPretestImage, resolveGradingScores, startDashboardGeneration, pollDashboardGeneration } from "@/lib/api/pretest";
@@ -116,6 +116,32 @@ function computeSkillLevel(pretestScores: Record<string, { score?: number }>): {
     return { key, label: SKILL_LABELS[key], avg: Math.round(avg) };
 }
 
+const PRETEST_STORAGE_KEY = "pretest:v1";
+const PRETEST_TTL_MS = 24 * 60 * 60 * 1000;
+
+function savePretestProgress(update: Partial<{
+    jobIds: string[];
+    currentStep: Step;
+    selectedGoal: string;
+    selectedTime: string;
+    dashboardJobId: string;
+}>) {
+    try {
+        const existing = JSON.parse(localStorage.getItem(PRETEST_STORAGE_KEY) || "{}");
+        localStorage.setItem(PRETEST_STORAGE_KEY, JSON.stringify({
+            schemaVersion: 1,
+            startedAt: existing.startedAt || Date.now(),
+            jobIds: existing.jobIds || [],
+            currentStep: existing.currentStep || 1,
+            selectedGoal: existing.selectedGoal || GOALS[0],
+            selectedTime: existing.selectedTime || TIME_OPTIONS[1],
+            ...update,
+        }));
+    } catch {
+        // localStorage unavailable — fail silently
+    }
+}
+
 export default function PretestPage() {
     const router = useRouter();
 
@@ -137,6 +163,38 @@ export default function PretestPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+    // Restore saved progress on mount
+    useEffect(() => {
+        try {
+            const raw = localStorage.getItem(PRETEST_STORAGE_KEY);
+            if (!raw) return;
+            const data = JSON.parse(raw);
+            if (data.schemaVersion !== 1) { localStorage.removeItem(PRETEST_STORAGE_KEY); return; }
+            if (Date.now() - (data.startedAt || 0) > PRETEST_TTL_MS) { localStorage.removeItem(PRETEST_STORAGE_KEY); return; }
+
+            const savedJobIds: string[] = data.jobIds || [];
+            const savedStep: Step = data.currentStep || 1;
+            const savedGoal: string = data.selectedGoal || GOALS[0];
+            const savedTime: string = data.selectedTime || TIME_OPTIONS[1];
+
+            setJobIds(savedJobIds);
+            setSelectedGoal(savedGoal);
+            setSelectedTime(savedTime);
+
+            if (savedJobIds.length === 4 && (savedStep === "loading" || savedStep === "results")) {
+                setCurrentStep("loading");
+                setIsGenerating(true);
+                setDashboardReady(false);
+                runGradingAndGenerate(savedJobIds, savedGoal, savedTime);
+            } else {
+                setCurrentStep(savedStep);
+            }
+        } catch {
+            localStorage.removeItem(PRETEST_STORAGE_KEY);
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const resetUploadState = () => {
         setFile(null);
@@ -176,6 +234,8 @@ export default function PretestPage() {
             const { job_id } = await submitPretestImage(formData, question.assignment, question.refKey);
             const newJobIds = [...jobIds, job_id];
             setJobIds(newJobIds);
+            const nextStep: Step = currentStep < 4 ? (currentStep + 1) as Step : "preferences";
+            savePretestProgress({ jobIds: newJobIds, currentStep: nextStep });
 
             // Brief confirmation then advance
             setShowConfirm(true);
@@ -193,18 +253,23 @@ export default function PretestPage() {
         }
     };
 
-    const runGradingAndGenerate = async () => {
+    const runGradingAndGenerate = async (idsOverride?: string[], goalOverride?: string, timeOverride?: string) => {
         try {
+            const idsToUse = idsOverride ?? jobIds;
+            const goalToUse = goalOverride ?? selectedGoal;
+            const timeToUse = timeOverride ?? selectedTime;
+
             // Phase 1: poll the 4 grading jobs — show results as soon as they're done
-            const pretestScores = await resolveGradingScores(jobIds);
+            const pretestScores = await resolveGradingScores(idsToUse);
             const skill = computeSkillLevel(pretestScores);
             setSkillResult(skill);
             setPretestBreakdown(pretestScores);
-            updateProfile({ skill_level: skill.key, artistic_goal: selectedGoal, time_commitment: selectedTime }).catch(() => {});
+            updateProfile({ skill_level: skill.key, artistic_goal: goalToUse, time_commitment: timeToUse }).catch(() => {});
             setCurrentStep("results");
 
             // Phase 2: kick off dashboard generation in background — button unlocks when done
-            const job_id = await startDashboardGeneration(pretestScores, selectedGoal, selectedTime);
+            const job_id = await startDashboardGeneration(pretestScores, goalToUse, timeToUse);
+            savePretestProgress({ dashboardJobId: job_id });
             await pollDashboardGeneration(job_id);
             setDashboardReady(true);
         } catch {
@@ -219,6 +284,7 @@ export default function PretestPage() {
         setDashboardReady(false);
         setError(null);
         setCurrentStep("loading");
+        savePretestProgress({ selectedGoal, selectedTime, currentStep: "loading" });
         runGradingAndGenerate();
     };
 
@@ -276,7 +342,7 @@ export default function PretestPage() {
                     </div>
                     <div className={styles.resultsTitle}>Assessment Complete</div>
                     <div className={styles.resultsSubtitle}>
-                        Based on your drawings, we&apos;ve determined your current skill level.
+                        Based on your drawings, we've determined your current skill level.
                     </div>
 
                     <div className={styles.skillCard}>
@@ -310,7 +376,7 @@ export default function PretestPage() {
 
                     <button
                         className={styles.btnPrimary}
-                        onClick={() => router.push("/dashboard")}
+                        onClick={() => { localStorage.removeItem(PRETEST_STORAGE_KEY); router.push("/dashboard"); }}
                         disabled={!dashboardReady}
                         style={{ width: "100%", opacity: dashboardReady ? 1 : 0.45 }}
                     >
