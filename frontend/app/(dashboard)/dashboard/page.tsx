@@ -28,31 +28,26 @@ function DashboardContent() {
 
         async function fetchDashboard() {
             try {
-                // First, try to load previously saved sections from the backend
                 const saved = await loadDashboard();
                 if (!cancelled && saved && saved.length > 0) {
                     setSections(saved);
-                    // Set the latest section's assessment in context
                     const latest = saved[saved.length - 1];
                     setAssessment(latest.contents.Assessment);
                     setLoading(false);
                     return;
                 }
 
-                // No saved dashboard — check if we have generation params (from pretest)
                 const topic = searchParams.get("topic");
                 const timeCommit = searchParams.get("timeCommit");
                 const skillLevel = searchParams.get("skillLevel");
 
                 if (!topic || !timeCommit || !skillLevel) {
-                    // No saved dashboard and no params to generate — show empty state
                     if (!cancelled) {
                         setLoading(false);
                     }
                     return;
                 }
 
-                // Generate a new plan via AI
                 // Guard against React Strict Mode double-firing the effect
                 if (cancelled) return;
                 const data = await generateSections({ topic, timeCommit, skillLevel });

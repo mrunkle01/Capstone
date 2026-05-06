@@ -32,7 +32,6 @@ export default function LessonList({
     const [assessmentReportId, setAssessmentReportId] = useState<number | null>(initialProgress.assessmentReportId ?? null);
     const [assessmentScore, setAssessmentScore] = useState<number | null>(initialProgress.assessmentScore ?? null);
 
-    // For completed past sections, mark everything done
     const effectiveCompletedCount = isCompleted ? lessons.length : completedCount;
     const effectiveAssessmentDone = isCompleted || assessmentReportId !== null;
 
@@ -51,7 +50,6 @@ export default function LessonList({
 
     function handleCardClick(index: number) {
         if (isCompleted) {
-            // Past sections can expand any card for review
             setExpandedCard(expandedCard === index ? -1 : index);
             return;
         }
@@ -71,7 +69,6 @@ export default function LessonList({
     const sectionNum = String(sectionOrder).padStart(2, "0");
     const allLessonsDone = effectiveCompletedCount >= lessons.length;
 
-    // Determine section bar status
     let sectionStatus: string;
     if (effectiveAssessmentDone) {
         sectionStatus = "Completed";

@@ -138,7 +138,7 @@ function savePretestProgress(update: Partial<{
             ...update,
         }));
     } catch {
-        // localStorage unavailable — fail silently
+
     }
 }
 
@@ -156,7 +156,6 @@ export default function PretestPage() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [pretestBreakdown, setPretestBreakdown] = useState<Record<string, any> | null>(null);
 
-    // Per-question upload state
     const [file, setFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [isDragging, setIsDragging] = useState(false);
@@ -164,7 +163,6 @@ export default function PretestPage() {
     const [showConfirm, setShowConfirm] = useState(false);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-    // Restore saved progress on mount
     useEffect(() => {
         try {
             const raw = localStorage.getItem(PRETEST_STORAGE_KEY);
@@ -237,7 +235,6 @@ export default function PretestPage() {
             const nextStep: Step = currentStep < 4 ? (currentStep + 1) as Step : "preferences";
             savePretestProgress({ jobIds: newJobIds, currentStep: nextStep });
 
-            // Brief confirmation then advance
             setShowConfirm(true);
             setTimeout(() => {
                 resetUploadState();
@@ -259,7 +256,7 @@ export default function PretestPage() {
             const goalToUse = goalOverride ?? selectedGoal;
             const timeToUse = timeOverride ?? selectedTime;
 
-            // Phase 1: poll the 4 grading jobs — show results as soon as they're done
+            // pol the 4 grading jobs — show results as soon as they're done
             const pretestScores = await resolveGradingScores(idsToUse);
             const skill = computeSkillLevel(pretestScores);
             setSkillResult(skill);
@@ -267,7 +264,7 @@ export default function PretestPage() {
             updateProfile({ skill_level: skill.key, artistic_goal: goalToUse, time_commitment: timeToUse }).catch(() => {});
             setCurrentStep("results");
 
-            // Phase 2: kick off dashboard generation in background — button unlocks when done
+            // kick off dashboard generation in background - button unlocks when done
             const job_id = await startDashboardGeneration(pretestScores, goalToUse, timeToUse);
             savePretestProgress({ dashboardJobId: job_id });
             await pollDashboardGeneration(job_id);
@@ -395,7 +392,7 @@ export default function PretestPage() {
         return (
             <div className={styles.outer}>
                 <div className={`${styles.page} ${playfair.variable} ${dmSans.variable}`}>
-                    <div className={styles.stepIndicator}>&mdash; Almost done</div>
+                    <div className={styles.stepIndicator}>- Almost done</div>
                     <div className={styles.title}>Set your goals</div>
                     <div className={styles.divider} />
 

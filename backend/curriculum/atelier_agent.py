@@ -221,7 +221,7 @@ class AtelierClient:
         self.__messages.append({'role': 'user', 'content': f"Summarize the conversation thus far."}) # Feed only the last few messages
         print("Saving summary...")
         res = self.__client.chat(
-            model='qwen3.5:397b-cloud',
+            model='kimi-k2.6:cloud',
             messages=self.__messages,
             options=self.__options
         )
@@ -254,7 +254,7 @@ class AtelierClient:
         action the LLM decided to trigger (via request_lesson_swap / request_time_change).
         Returns: { "reply": str, "action": dict | None }
         """
-        model = 'qwen3.5:397b-cloud'
+        model = 'kimi-k2.6:cloud'
         self._last_action = None  # reset so stale actions from previous turns don't leak
 
         self.__messages.append({'role': 'user', 'content': prompt})
@@ -289,7 +289,7 @@ class AtelierClient:
 
     def grade_art(self, assignment: str, img: bytes) -> Grade:
         # model = 'qwen3-vl:235b-cloud'
-        model = 'qwen3.5:397b-cloud'
+        model = 'kimi-k2.6:cloud'
         self.__initialize_context([assignment], [{"type": "assessment"}])
 
         img_final = base64.b64encode(img).decode()
@@ -313,7 +313,7 @@ class AtelierClient:
 
     def grade_art_with_ref(self, assignment: str, img: bytes, ref: bytes):
         # model = 'qwen3-vl:235b-cloud'
-        model = 'qwen3.5:397b-cloud'
+        model = 'kimi-k2.6:cloud'
         self.__initialize_context([assignment], [{"type": "assessment"}])
 
         img_final = base64.b64encode(img).decode()
@@ -340,7 +340,7 @@ class AtelierClient:
         raise last_error
 
     def generate_lesson_plan(self, topic: str, time_commit: str, skill: str, amount: int = 5) -> LessonPlan:
-        model = 'qwen3.5:397b-cloud'
+        model = 'kimi-k2.6:cloud'
         self.__initialize_context(["User Skill"], [{"skill": topic}])
         self.__initialize_context(["What is the user's goals?"], [{"type": "goal"}])
 
@@ -360,7 +360,7 @@ class AtelierClient:
         return lesson_plan
 
     def generate_lesson(self, topic: str, time_commit: str, skill: str):
-        model = 'qwen3.5:397b-cloud'
+        model = 'kimi-k2.6:cloud'
         # self.__initialize_context([
         #     {
         #         "query": f"{self.__id_ref}'s skill in {topic}",
