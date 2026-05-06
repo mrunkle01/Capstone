@@ -214,7 +214,7 @@ class AtelierClient:
         # Clear messages after initial system prompt and replace it with summary
         print("Saving summary...")
         res = self.__client.chat(
-            model='qwen3.5:397b-cloud',
+            model='kimi-k2.6:cloud',
             messages=self.__messages,
             options=self.__options
         )
@@ -224,7 +224,7 @@ class AtelierClient:
         self.__conv_turns = 0
 
     async def async_chat(self, prompt: str):
-        model = 'qwen3.5:cloud'
+        model = 'kimi-k2.6:cloud'
         self.__messages.append({'role': 'user', 'content': prompt})
         final_res = self.__client.chat(model=model, messages=self.__messages, tools=self.__tools,
                                        think=True, options=self.__options)
@@ -254,7 +254,7 @@ class AtelierClient:
 
     def grade_art(self, assignment: str, img: bytes, ref: bytes = None, skill: str = "") -> Grade:
         # model = 'qwen3-vl:235b-cloud'
-        model = 'qwen3.5:397b-cloud'
+        model = 'kimi-k2.6:cloud'
 
         self.__initialize_context([
             {
@@ -287,7 +287,7 @@ class AtelierClient:
             print(e)
 
     def generate_lesson_plan(self, topic: str, time_commit: str, skill: str, amount: int = 5) -> LessonPlan:
-        model = 'qwen3.5:397b-cloud'
+        model = 'kimi-k2.6:cloud'
         self.__initialize_context([
             {
                 "query": f"{self.__id_ref}'s skill in {topic}",
@@ -320,7 +320,7 @@ class AtelierClient:
             print(e)
 
     def generate_lesson(self, topic: str, time_commit: str, skill: str) -> Lesson:
-        model = 'qwen3.5:397b-cloud'
+        model = 'kimi-k2.6:cloud'
         self.__initialize_context([
             {
                 "query": f"{self.__id_ref}'s skill in {topic}",
@@ -350,7 +350,7 @@ class AtelierClient:
             print(e)
 
     def modify_lesson(self, lesson: str, mod: str) -> Lesson:
-        model = 'qwen3.5:397b-cloud'
+        model = 'kimi-k2.6:cloud'
         instr = {"role": "user", "content": f"Can you modify this lesson \n{lesson}\n based on this suggestion: {mod}."
                                             f"And make sure you remember that you did."}
         response = self.__generate(model, instr, Lesson.model_json_schema())

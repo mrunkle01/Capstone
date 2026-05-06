@@ -15,11 +15,10 @@ interface ChatPanelProps {
 export default function ChatPanel({ isOpen, onClose }: ChatPanelProps) {
     const messagesRef = useRef<HTMLDivElement>(null);
     const [messages, setMessages] = useState<ChatMessageType[]>([]);
-    const [input, setInput] = useState("");
     const [waiting, setWaiting] = useState(false);
     const [chatContext, setChatContext] = useState<ChatContext>({});
-    // Tracks a pending TIME_CHANGE confirmation — { msgId, time_value }
     const [pendingConfirm, setPendingConfirm] = useState<{ msgId: string; time_value: string } | null>(null);
+    const [input, setInput] = useState("");
 
     useEffect(() => {
         if (isOpen && messagesRef.current) {
@@ -27,7 +26,6 @@ export default function ChatPanel({ isOpen, onClose }: ChatPanelProps) {
         }
     }, [isOpen, messages]);
 
-    // Load user context once when the panel opens
     useEffect(() => {
         if (!isOpen) return;
         loadUser().then((user) => {
@@ -66,7 +64,7 @@ export default function ChatPanel({ isOpen, onClose }: ChatPanelProps) {
             };
             setMessages(prev => [...prev, aiMsg]);
 
-            // If lesson swap approved, keep loading until background generation finishes
+            // If lesson swa approved, keep loading until background generation finishes
             if (
                 result.action?.type === "LESSON_SWAP" &&
                 result.action.status === "approved" &&
@@ -82,7 +80,6 @@ export default function ChatPanel({ isOpen, onClose }: ChatPanelProps) {
                 }]);
             }
 
-            // Surface a confirmation card if the AI is requesting a time change
             const timeAction = result.action?.type === "TIME_CHANGE" &&
                 result.action.status === "pending_confirmation" &&
                 result.action.data?.time_value

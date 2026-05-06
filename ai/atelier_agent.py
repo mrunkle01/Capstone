@@ -205,7 +205,7 @@ class AtelierClient:
         # Clear messages after initial system prompt and replace it with summary
         print("Saving summary...")
         res = self.__client.chat(
-            model='qwen3.5:397b-cloud',
+            model='kimi-k2.6:cloud',
             messages=self.__messages,
             options=self.__options
         )
@@ -216,7 +216,7 @@ class AtelierClient:
 
     async def async_chat(self, prompt: str):
         # model = 'qwen3.5:cloud'
-        model = 'qwen3.5:397b-cloud'
+        model = 'kimi-k2.6:cloud'
         self.__messages.append({'role': 'user', 'content': prompt})
         final_res = self.__client.chat(model=model, messages=self.__messages, tools=self.__tools,
                                        think=True, options=self.__options)
@@ -247,7 +247,7 @@ class AtelierClient:
 
     def grade_art(self, assignment: str, img: bytes) -> Grade:
         # model = 'qwen3-vl:235b-cloud'
-        model = 'qwen3.5:397b-cloud'
+        model = 'kimi-k2.6:cloud'
         self.__initialize_context([
             {
                 "query": assignment,
@@ -274,7 +274,7 @@ class AtelierClient:
 
     def grade_art_with_ref(self, assignment: str, img: bytes, ref: bytes):
         # model = 'qwen3-vl:235b-cloud'
-        model = 'qwen3.5:397b-cloud'
+        model = 'kimi-k2.6:cloud'
         self.__initialize_context([
             {
                 "query": assignment,
@@ -300,7 +300,7 @@ class AtelierClient:
             print(e)
 
     def generate_lesson_plan(self, topic: str, time_commit: str, skill: str, amount: int = 5) -> LessonPlan:
-        model = 'qwen3.5:397b-cloud'
+        model = 'kimi-k2.6:cloud'
         self.__initialize_context([
             {
                 "query": f"{self.__id_ref}'s skill in {topic}",
@@ -332,7 +332,7 @@ class AtelierClient:
             print(e)
 
     def generate_lesson(self, topic: str, time_commit: str, skill: str):
-        model = 'qwen3.5:397b-cloud'
+        model = 'kimi-k2.6:cloud'
         self.__initialize_context([
             {
                 "query": f"{self.__id_ref}'s skill in {topic}",

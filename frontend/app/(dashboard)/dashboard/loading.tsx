@@ -1,5 +1,3 @@
-// this needs to have loading screen more interactive instead of just silhouettes
-
 export default function DashboardSkeleton() {
     return (
         <div className="d-main d-skeleton">

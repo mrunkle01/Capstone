@@ -54,7 +54,7 @@ def _generate_single_lesson(topic: str, time_c: str, skill: str):
               .replace('{skill}', skill))
 
     response = client.chat(
-        model='qwen3.5:397b-cloud',
+        model='kimi-k2.6:cloud',
         messages=[{'role': 'user', 'content': prompt}],
         format=Lesson.model_json_schema(),
         options={'temperature': 0.8},
